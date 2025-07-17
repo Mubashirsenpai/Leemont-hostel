@@ -9,8 +9,8 @@
         <div class="login-form-container">
             <form action="{{ url_for('admin_login') }}" method="POST">
                 <div class="form-group">
-                    <label for="username">Username:</label>
-                    <input type="text" id="username" name="username" required>
+                    <label for="username">Email:</label> {# MODIFIED: Changed label to Email #}
+                    <input type="email" id="username" name="username" required> {# MODIFIED: Changed type to email #}
                 </div>
                 <div class="form-group">
                     <label for="password">Password:</label>
@@ -18,7 +18,7 @@
                 </div>
                 <button type="submit" class="btn primary">Login</button>
             </form>
-            <p class="note">Default Admin: username `admin`, password `password` (for local testing only)</p>
+            <p class="note">Default Admin: email `admin@leemonthostel.com`, password from `ADMIN_PASSWORD` environment variable</p> {# MODIFIED: Updated note #}
         </div>
     </div>
 </section>

@@ -14,23 +14,18 @@ app = Flask(__name__, static_folder='static', template_folder='templates')
 # IMPORTANT: Flask-Login requires 'SECRET_KEY' for session management
 app.config['SECRET_KEY'] = os.environ.get('FLASK_SECRET_KEY', secrets.token_hex(16))
 
-# Debug print to confirm SECRET_KEY is set
-print(f"--- APP STARTUP DEBUG ---")
-print(f"Flask SECRET_KEY is set: {app.config['SECRET_KEY'] is not None}")
-if app.config['SECRET_KEY'] is not None:
-    print(f"Length of SECRET_KEY: {len(app.config['SECRET_KEY'])}")
-else:
-    print(f"SECRET_KEY is None.")
-print(f"--- END APP STARTUP DEBUG ---")
-
-
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///leemonthostel.db' # Using SQLite for both hostel data and users
+# MODIFIED: Use PostgreSQL database URI from environment variable
+# 'DATABASE_URL' will be provided by Render from your Neon connection string
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Initialize SQLAlchemy
 db = SQLAlchemy(app)
 
-# Cloudinary Configuration (Uncomment and fill with your actual credentials)
+# Cloudinary Configuration (Uncomment and fill with your actual credentials if using)
+# import cloudinary
+# import cloudinary.uploader
+# import cloudinary.api
 # cloudinary.config(
 #     cloud_name = os.environ.get('CLOUDINARY_CLOUD_NAME'),
 #     api_key = os.environ.get('CLOUDINARY_API_KEY'),
@@ -42,14 +37,14 @@ CORS(app) # Enable CORS for all routes
 # --- Flask-Login Setup ---
 login_manager = LoginManager()
 login_manager.init_app(app)
-login_manager.login_view = 'user_login' # Default redirect for non-logged-in users (changed from admin_login)
+login_manager.login_view = 'user_login' # Default redirect for non-logged-in users
 
-# User model for regular users
+# MODIFIED: User model now includes is_admin flag
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(120), unique=True, nullable=False)
-    password_hash = db.Column(db.String(128), nullable=False)
-    is_admin = db.Column(db.Boolean, default=False) # To distinguish from admin user
+    password_hash = db.Column(db.String(256), nullable=False) # Increased length for stronger hashes
+    is_admin = db.Column(db.Boolean, default=False) # To distinguish admin users
 
     def __repr__(self):
         return f'<User {self.email}>'
@@ -60,41 +55,16 @@ class User(db.Model, UserMixin):
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
 
-# Simple AdminUser class for Flask-Login (for hardcoded admin only)
-class AdminUser(UserMixin):
-    def __init__(self, id, username, password_hash):
-        self.id = id
-        self.username = username
-        self.password_hash = password_hash
-        self.is_admin = True # Mark as admin
-
     def get_id(self):
         return str(self.id)
 
-    def check_password(self, password):
-        return check_password_hash(self.password_hash, password)
-
-# Hardcoded admin user for demonstration. Password is hashed once at startup.
-_ADMIN_USERNAME = "Mubashiruna"
-_ADMIN_PLAINTEXT_PASSWORD = "Agent@2008"
-
-# Hash the password once when the application starts
-with app.app_context():
-    _ADMIN_HASHED_PASSWORD = generate_password_hash(_ADMIN_PLAINTEXT_PASSWORD)
-    ADMIN_USER_INSTANCE = AdminUser(id=9999, username=_ADMIN_USERNAME, password_hash=_ADMIN_HASHED_PASSWORD) # Use a distinct ID for admin
-
+# MODIFIED: load_user now only loads from the User model
 @login_manager.user_loader
 def load_user(user_id):
-    # Try to load as a regular user first
-    user = User.query.get(int(user_id))
-    if user:
-        return user
-    # If not a regular user, check if it's the hardcoded admin
-    if user_id == str(ADMIN_USER_INSTANCE.id):
-        return ADMIN_USER_INSTANCE
-    return None
+    return User.query.get(int(user_id))
 
 # --- Data Loading and Saving (using JSON file for hostel/room data) ---
+# This path is relative to the app's root, which works well on Render.
 DATA_FILE = os.path.join(app.root_path, 'data', 'rooms.json')
 
 def load_hostel_data():
@@ -171,16 +141,35 @@ def save_hostel_data(data):
         json.dump(data, f, indent=2)
 
 # Load hostel_data immediately within an application context
-# This ensures it's populated when the app is imported by 'flask run'
+# This ensures it's populated when the app is imported by 'flask run' or Gunicorn
 hostel_data = {} # Initialize as empty dict for global scope
 with app.app_context():
     # Ensure the data directory exists before loading/creating data
     os.makedirs(os.path.dirname(DATA_FILE), exist_ok=True)
     hostel_data = load_hostel_data()
+    
     # Create database tables for User model if they don't exist
     db.create_all()
-    print("DEBUG: hostel_data loaded and database tables created successfully during app initialization.")
+    
+    # MODIFIED: Create/update admin user in the User database table
+    admin_email = 'admin@leemonthostel.com'
+    admin_user = User.query.filter_by(email=admin_email).first()
 
+    if not admin_user:
+        admin_user = User(email=admin_email, is_admin=True)
+        admin_user.set_password(os.environ.get('ADMIN_PASSWORD', 'Agent@2008')) # Use env var or default
+        db.session.add(admin_user)
+        db.session.commit()
+        print(f"Default admin user '{admin_email}' created in PostgreSQL.")
+    else:
+        # Optional: Update admin password if ADMIN_PASSWORD env var is different
+        # This could be useful if you change the env var after initial deployment
+        new_admin_password = os.environ.get('ADMIN_PASSWORD')
+        if new_admin_password and not admin_user.check_password(new_admin_password):
+            admin_user.set_password(new_admin_password)
+            db.session.commit()
+            print(f"Admin user '{admin_email}' password updated from environment variable.")
+        print(f"Default admin user '{admin_email}' already exists in PostgreSQL.")
 
 # Helper function to get only active rooms for public views
 def get_active_rooms():
@@ -227,8 +216,8 @@ def room_detail(room_id):
 @login_required # Only logged-in users can book
 def book(room_id):
     """Handles room booking requests."""
-    # Ensure the current_user is not the admin user for booking
-    if current_user.is_authenticated and hasattr(current_user, 'is_admin') and current_user.is_admin:
+    # MODIFIED: Check current_user's is_admin flag from DB
+    if current_user.is_authenticated and current_user.is_admin:
         flash('Admin users cannot make bookings. Please log in as a regular user.', 'error')
         return redirect(url_for('home')) # Redirect admin away from booking
 
@@ -268,7 +257,7 @@ def signup():
     if current_user.is_authenticated:
         flash('You are already logged in.', 'info')
         # Redirect to a user dashboard or home page if already logged in
-        if hasattr(current_user, 'is_admin') and current_user.is_admin:
+        if current_user.is_admin: # MODIFIED: Check is_admin flag
             return redirect(url_for('admin_dashboard'))
         return redirect(url_for('home')) # Or a user-specific dashboard
 
@@ -306,7 +295,7 @@ def user_login():
     if current_user.is_authenticated:
         flash('You are already logged in.', 'info')
         # Redirect to appropriate dashboard if already logged in
-        if hasattr(current_user, 'is_admin') and current_user.is_admin:
+        if current_user.is_admin: # MODIFIED: Check is_admin flag
             return redirect(url_for('admin_dashboard'))
         return redirect(url_for('home')) # Or a user-specific dashboard
 
@@ -334,55 +323,43 @@ def logout():
     flash('You have been logged out.', 'info')
     return redirect(url_for('home')) # Redirect to home after logout
 
-# --- Routes for Admin Pages (existing) ---
+# --- Routes for Admin Pages ---
 
 @app.route('/admin/login', methods=['GET', 'POST'])
 def admin_login():
     """Handles admin login."""
-    print(f"DEBUG: Entering admin_login route. Request method: {request.method}")
-
     if current_user.is_authenticated:
-        print("DEBUG: User is already authenticated. Redirecting to dashboard.")
-        # If already logged in as a regular user, log them out first or redirect
-        if not (hasattr(current_user, 'is_admin') and current_user.is_admin):
-            flash('Please log out of your regular account to log in as admin.', 'info')
-            return redirect(url_for('home')) # Redirect regular user away from admin login
-
-        return redirect(url_for('admin_dashboard'))
+        # If already logged in as admin, redirect to dashboard
+        if current_user.is_admin: # MODIFIED: Check is_admin flag
+            return redirect(url_for('admin_dashboard'))
+        # If logged in as regular user, prompt to logout first
+        flash('Please log out of your regular account to log in as admin.', 'info')
+        return redirect(url_for('home'))
 
     if request.method == 'POST':
-        username = request.form.get('username')
+        email = request.form.get('username') # Admin username is now email
         password = request.form.get('password')
 
-        print(f"DEBUG: Attempting login with username: '{username}'")
-        print(f"DEBUG: Admin username: '{_ADMIN_USERNAME}'")
-        
-        try:
-            if username == _ADMIN_USERNAME and check_password_hash(ADMIN_USER_INSTANCE.password_hash, password):
-                print("DEBUG: Password check successful. Attempting login_user.")
-                login_user(ADMIN_USER_INSTANCE)
-                print("DEBUG: login_user successful. Flashing success message.")
-                flash('Logged in successfully!', 'success')
-                print("DEBUG: Redirecting to admin_dashboard.")
-                return redirect(url_for('admin_dashboard'))
-            else:
-                print("DEBUG: Invalid username or password. Flashing error message.")
-                flash('Invalid username or password.', 'error')
-        except Exception as e:
-            print(f"ERROR: Exception during login process: {e}")
-            flash('An unexpected error occurred during login. Please try again.', 'error')
+        # MODIFIED: Authenticate admin against the User table in the database
+        admin_user = User.query.filter_by(email=email, is_admin=True).first()
 
-    print("DEBUG: Rendering admin_login.html.")
+        if admin_user and admin_user.check_password(password):
+            login_user(admin_user)
+            flash('Admin logged in successfully!', 'success')
+            return redirect(url_for('admin_dashboard'))
+        else:
+            flash('Invalid admin email or password.', 'error') # MODIFIED: Message for clarity
     return render_template('admin_login.html', hostel=hostel_data)
+
 
 @app.route('/admin/dashboard')
 @login_required
 def admin_dashboard():
     """Renders the admin dashboard with an overview of rooms."""
-    # Ensure only admins can access this dashboard
-    if not (hasattr(current_user, 'is_admin') and current_user.is_admin):
+    # MODIFIED: Ensure only users with is_admin=True can access this dashboard
+    if not current_user.is_admin:
         flash('Access denied. Admin privileges required.', 'error')
-        return redirect(url_for('home')) # Redirect non-admins
+        return redirect(url_for('home'))
 
     total_active_rooms = sum(room['available_rooms'] for room in get_active_rooms())
     return render_template('admin_dashboard.html', hostel=hostel_data, rooms=hostel_data['rooms'], total_available=total_active_rooms)
@@ -391,7 +368,8 @@ def admin_dashboard():
 @login_required
 def edit_room(room_id):
     """Handles editing details for a specific room."""
-    if not (hasattr(current_user, 'is_admin') and current_user.is_admin):
+    # MODIFIED: Ensure only users with is_admin=True can access
+    if not current_user.is_admin:
         flash('Access denied. Admin privileges required.', 'error')
         return redirect(url_for('home'))
 
@@ -421,7 +399,8 @@ def edit_room(room_id):
 @login_required
 def add_room():
     """Handles adding a new room."""
-    if not (hasattr(current_user, 'is_admin') and current_user.is_admin):
+    # MODIFIED: Ensure only users with is_admin=True can access
+    if not current_user.is_admin:
         flash('Access denied. Admin privileges required.', 'error')
         return redirect(url_for('home'))
 
@@ -453,7 +432,8 @@ def add_room():
 @login_required
 def delete_room(room_id):
     """Handles soft-deleting a room."""
-    if not (hasattr(current_user, 'is_admin') and current_user.is_admin):
+    # MODIFIED: Ensure only users with is_admin=True can access
+    if not current_user.is_admin:
         flash('Access denied. Admin privileges required.', 'error')
         return redirect(url_for('home'))
 
@@ -475,7 +455,8 @@ def delete_room(room_id):
 @login_required
 def restore_room(room_id):
     """Handles restoring a soft-deleted room."""
-    if not (hasattr(current_user, 'is_admin') and current_user.is_admin):
+    # MODIFIED: Ensure only users with is_admin=True can access
+    if not current_user.is_admin:
         flash('Access denied. Admin privileges required.', 'error')
         return redirect(url_for('home'))
 
@@ -498,7 +479,8 @@ def restore_room(room_id):
 @login_required
 def edit_hostel_details():
     """Allows admin to edit general hostel details like name, general video/images, amenities."""
-    if not (hasattr(current_user, 'is_admin') and current_user.is_admin):
+    # MODIFIED: Ensure only users with is_admin=True can access
+    if not current_user.is_admin:
         flash('Access denied. Admin privileges required.', 'error')
         return redirect(url_for('home'))
 
@@ -516,3 +498,4 @@ def edit_hostel_details():
 
 if __name__ == '__main__':
     app.run(debug=True)
+
