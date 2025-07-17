@@ -7,7 +7,7 @@
     <div class="container">
         <h2 class="section-title">Add <span>New Room</span></h2>
         <div class="form-container">
-            <form action="{{ url_for('add_room') }}" method="POST">
+            <form action="{{ url_for('add_room') }}" method="POST" id="addRoomForm" enctype="multipart/form-data"> {# ADDED: id and enctype #}
                 <div class="form-group">
                     <label for="name">Room Name:</label>
                     <input type="text" id="name" name="name" required>
@@ -32,17 +32,26 @@
                     <label for="amenities">Amenities (comma-separated):</label>
                     <textarea id="amenities" name="amenities" rows="3" required></textarea>
                 </div>
+
+                {# NEW: File input for images #}
                 <div class="form-group">
-                    <label for="images">Image URLs (one per line):</label>
-                    <textarea id="images" name="images" rows="5"></textarea>
-                    <p class="note">For Cloudinary upload, you'd integrate frontend JS here to upload files and get URLs back.</p>
+                    <label for="upload_images">Upload Room Images:</label>
+                    <input type="file" id="upload_images" name="upload_images" accept="image/*" multiple>
+                    <div id="image_upload_status" class="upload-status"></div> {# For upload messages #}
+                    {# Hidden input to store Cloudinary URLs #}
+                    <input type="hidden" id="images_cloudinary_urls" name="images" value=""> 
                 </div>
+                
+                {# NEW: File input for video #}
                 <div class="form-group">
-                    <label for="video_url">Video URL:</label>
-                    <input type="url" id="video_url" name="video_url">
-                    <p class="note">For Cloudinary upload, you'd integrate frontend JS here to upload files and get URLs back.</p>
+                    <label for="upload_video">Upload Room Video:</label>
+                    <input type="file" id="upload_video" name="upload_video" accept="video/*">
+                    <div id="video_upload_status" class="upload-status"></div> {# For upload messages #}
+                    {# Hidden input to store Cloudinary URL #}
+                    <input type="hidden" id="video_cloudinary_url" name="video_url" value="">
                 </div>
-                <button type="submit" class="btn primary">Add Room</button>
+
+                <button type="submit" class="btn primary" id="addRoomSubmitBtn">Add Room</button> {# ADDED ID #}
                 <a href="{{ url_for('admin_dashboard') }}" class="btn secondary">Cancel</a>
             </form>
         </div>

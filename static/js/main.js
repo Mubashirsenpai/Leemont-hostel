@@ -38,122 +38,149 @@ document.addEventListener('DOMContentLoaded', function() {
     // Smooth scrolling for anchor links (if any are added later)
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
         anchor.addEventListener('click', function (e) {
-            // Only prevent default if it's an internal anchor link
-            const targetId = this.getAttribute('href');
-            if (targetId.length > 1 && targetId.startsWith('#')) { // Ensure it's not just '#'
-                const targetElement = document.querySelector(targetId);
-                if (targetElement) {
-                    e.preventDefault(); // Prevent default only if target exists
-                    window.scrollTo({
-                        top: targetElement.offsetTop - (header ? header.offsetHeight : 0), // Adjust for fixed header height
-                        behavior: 'smooth'
-                    });
-                }
-            }
+            e.preventDefault();
+            document.querySelector(this.getAttribute('href')).scrollIntoView({
+                behavior: 'smooth'
+            });
         });
     });
 
-    // Flash message auto-hide (CSS handles fadeOut, but this ensures removal)
-    const flashMessages = document.querySelector('.flash-messages');
-    if (flashMessages) {
-        // Remove the flash message element from the DOM after its animation
-        flashMessages.addEventListener('animationend', (event) => {
-            if (event.animationName === 'fadeOut') {
-                flashMessages.remove();
+    // --- Cloudinary Upload Logic ---
+    // IMPORTANT: Replace 'YOUR_CLOUDINARY_CLOUD_NAME' and 'YOUR_CLOUDINARY_UPLOAD_PRESET'
+    // You will get these from your Cloudinary Dashboard.
+    // The upload preset should be unsigned for direct browser uploads.
+    const CLOUDINARY_CLOUD_NAME = 'YOUR_CLOUDINARY_CLOUD_NAME'; // Replace with your Cloud Name
+    const CLOUDINARY_UPLOAD_PRESET = 'YOUR_CLOUDINARY_UPLOAD_PRESET'; // Replace with your Upload Preset (e.g., 'ml_default' or a custom one)
+
+    // Helper function to handle file uploads to Cloudinary
+    async function uploadFileToCloudinary(file, resourceType, statusElementId, hiddenInputId) {
+        const statusElement = document.getElementById(statusElementId);
+        const hiddenInput = document.getElementById(hiddenInputId);
+        const submitButton = document.querySelector('button[type="submit"]'); // Get the form's submit button
+
+        if (!file) {
+            statusElement.textContent = 'No file selected.';
+            statusElement.className = 'upload-status error';
+            return null;
+        }
+
+        statusElement.textContent = `Uploading ${file.name}...`;
+        statusElement.className = 'upload-status'; // Reset class
+        if (submitButton) submitButton.disabled = true; // Disable submit button during upload
+
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+
+        try {
+            const response = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/${resourceType}/upload`, {
+                method: 'POST',
+                body: formData
+            });
+            const data = await response.json();
+
+            if (data.secure_url) {
+                statusElement.textContent = `Uploaded ${file.name} successfully!`;
+                statusElement.className = 'upload-status success';
+                
+                // For images, append to existing URLs (if any), separated by newline
+                if (resourceType === 'image') {
+                    const existingUrls = hiddenInput.value.split('\n').filter(url => url.trim() !== '');
+                    existingUrls.push(data.secure_url);
+                    hiddenInput.value = existingUrls.join('\n');
+                } else { // For video, replace existing URL
+                    hiddenInput.value = data.secure_url;
+                }
+                return data.secure_url;
+            } else {
+                statusElement.textContent = `Upload failed for ${file.name}: ${data.error ? data.error.message : 'Unknown error'}`;
+                statusElement.className = 'upload-status error';
+                return null;
             }
-        });
-    }
-
-    // --- Image Carousel Logic for Hero Section ---
-    const slideImages = document.querySelectorAll('.hero-image-slider .slide-image');
-    let currentSlide = 0;
-    const slideIntervalTime = 5000; // 5 seconds
-
-    function showSlide(index) {
-        // Hide all slides
-        slideImages.forEach(img => img.classList.remove('active'));
-        // Show the current slide
-        if (slideImages[index]) {
-            slideImages[index].classList.add('active');
+        } catch (error) {
+            console.error('Upload error:', error);
+            statusElement.textContent = `An error occurred during upload for ${file.name}.`;
+            statusElement.className = 'upload-status error';
+            return null;
+        } finally {
+            if (submitButton) submitButton.disabled = false; // Re-enable submit button
         }
     }
 
-    function startSlider() {
-        if (slideImages.length > 0) {
-            showSlide(currentSlide); // Show the first slide immediately
-            setInterval(() => {
-                currentSlide = (currentSlide + 1) % slideImages.length;
-                showSlide(currentSlide);
-            }, slideIntervalTime);
+    // --- Event Listeners for File Inputs ---
+
+    // Add Room / Edit Room Image Upload
+    const uploadRoomImagesInput = document.getElementById('upload_images');
+    if (uploadRoomImagesInput) {
+        uploadRoomImagesInput.addEventListener('change', async (event) => {
+            const files = event.target.files;
+            if (files.length === 0) return;
+
+            const hiddenInputId = 'images_cloudinary_urls';
+            const hiddenInput = document.getElementById(hiddenInputId);
+            hiddenInput.value = ''; // Clear existing URLs for new upload
+
+            for (const file of files) {
+                // Each image is uploaded sequentially
+                await uploadFileToCloudinary(file, 'image', 'image_upload_status', hiddenInputId);
+            }
+        });
+    }
+
+    // Add Room / Edit Room Video Upload
+    const uploadRoomVideoInput = document.getElementById('upload_video');
+    if (uploadRoomVideoInput) {
+        uploadRoomVideoInput.addEventListener('change', async (event) => {
+            const file = event.target.files[0];
+            await uploadFileToCloudinary(file, 'video', 'video_upload_status', 'video_cloudinary_url');
+        });
+    }
+
+    // Edit Hostel Details General Image Upload
+    const uploadGeneralImagesInput = document.getElementById('upload_general_images');
+    if (uploadGeneralImagesInput) {
+        uploadGeneralImagesInput.addEventListener('change', async (event) => {
+            const files = event.target.files;
+            if (files.length === 0) return;
+
+            const hiddenInputId = 'general_images_cloudinary_urls';
+            const hiddenInput = document.getElementById(hiddenInputId);
+            hiddenInput.value = ''; // Clear existing URLs for new upload
+
+            for (const file of files) {
+                await uploadFileToCloudinary(file, 'image', 'general_image_upload_status', hiddenInputId);
+            }
+        });
+    }
+
+    // Edit Hostel Details General Video Upload
+    const uploadGeneralVideoInput = document.getElementById('upload_general_video');
+    if (uploadGeneralVideoInput) {
+        uploadGeneralVideoInput.addEventListener('change', async (event) => {
+            const file = event.target.files[0];
+            await uploadFileToCloudinary(file, 'video', 'general_video_upload_status', 'general_video_cloudinary_url');
+        });
+    }
+
+    // --- Form Submission Handling ---
+    // Prevent form submission if uploads are still pending (though buttons are disabled)
+    // This is a fallback and ensures the hidden fields are populated.
+
+    const forms = ['addRoomForm', 'editRoomForm', 'editHostelDetailsForm'];
+    forms.forEach(formId => {
+        const form = document.getElementById(formId);
+        if (form) {
+            form.addEventListener('submit', function(event) {
+                // Check if any upload is still in progress (e.g., if button re-enabled too quickly)
+                const submitButton = event.submitter;
+                if (submitButton && submitButton.disabled) {
+                    event.preventDefault(); // Prevent submission
+                    alert('Please wait for all uploads to complete before submitting.'); // Use a custom modal in a real app
+                }
+                // The hidden inputs should already be populated by the 'change' event listeners
+                // so no further action is needed here for populating URLs.
+            });
         }
-    }
+    });
 
-    startSlider(); // Start the slider when DOM is ready
-
-    // Admin form specific logic (e.g., image/video upload via Cloudinary)
-    // This is where you would add JavaScript for actual file uploads.
-    // Example (highly simplified, requires more robust error handling and UI feedback):
-    /*
-    const uploadImageInput = document.getElementById('upload_image'); // Assuming an input with this ID for image upload
-    if (uploadImageInput) {
-        uploadImageInput.addEventListener('change', async (event) => {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            const formData = new FormData();
-            formData.append('file', file);
-            formData.append('upload_preset', 'YOUR_CLOUDINARY_UPLOAD_PRESET'); // Set this in Cloudinary
-
-            try {
-                // Replace YOUR_CLOUD_NAME with your actual Cloudinary cloud name
-                const response = await fetch('https://api.cloudinary.com/v1_1/YOUR_CLOUD_NAME/image/upload', {
-                    method: 'POST',
-                    body: formData
-                });
-                const data = await response.json();
-                if (data.secure_url) {
-                    const imageUrlsTextarea = document.getElementById('images'); // Assuming a textarea with ID 'images'
-                    imageUrlsTextarea.value += (imageUrlsTextarea.value ? '\n' : '') + data.secure_url;
-                    alert('Image uploaded successfully!');
-                } else {
-                    alert('Image upload failed: ' + (data.error ? data.error.message : 'Unknown error'));
-                }
-            } catch (error) {
-                console.error('Upload error:', error);
-                alert('An error occurred during upload.');
-            }
-        });
-    }
-
-    const uploadVideoInput = document.getElementById('upload_video'); // Assuming an input with this ID for video upload
-    if (uploadVideoInput) {
-        uploadVideoInput.addEventListener('change', async (event) => {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            const formData = new FormData();
-            formData.append('file', file);
-            formData.append('upload_preset', 'YOUR_CLOUDINARY_UPLOAD_PRESET'); // Set this in Cloudinary
-
-            try {
-                // Replace YOUR_CLOUD_NAME with your actual Cloudinary cloud name
-                const response = await fetch('https://api.cloudinary.com/v1_1/YOUR_CLOUD_NAME/video/upload', {
-                    method: 'POST',
-                    body: formData
-                });
-                const data = await response.json();
-                if (data.secure_url) {
-                    const videoUrlInput = document.getElementById('video_url'); // Assuming an input with ID 'video_url'
-                    videoUrlInput.value = data.secure_url;
-                    alert('Video uploaded successfully!');
-                } else {
-                    alert('Video upload failed: ' + (data.error ? data.error.error.message : 'Unknown error'));
-                }
-            } catch (error) {
-                console.error('Upload error:', error);
-                alert('An error occurred during upload.');
-            }
-        });
-    }
-    */
 });

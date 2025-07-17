@@ -8,7 +8,7 @@
     --light-color: #f5f6fa;
     --white: #ffffff;
     --black: #000000;
-    --success: #00b894;
+    --success: #00b81f;
     --danger: #d63031;
     --warning: #fdcb6e;
     --info: #0984e3;
@@ -1090,6 +1090,43 @@ header .container {
 .form-container .form-group textarea {
     min-height: 80px; /* Smaller default for admin forms */
 }
+
+/* NEW: Styles for Cloudinary upload status and previews */
+.upload-status {
+    margin-top: 5px;
+    font-size: 0.85rem;
+    color: var(--info); /* Blue for general status */
+}
+.upload-status.success {
+    color: var(--success);
+}
+.upload-status.error {
+    color: var(--danger);
+}
+
+.current-media-preview {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.current-image-thumbnail {
+    width: 100px;
+    height: 75px; /* Maintain 4:3 aspect ratio */
+    object-fit: cover;
+    border-radius: 5px;
+    border: 1px solid var(--border-color);
+}
+
+.current-video-thumbnail {
+    width: 150px;
+    height: 100px; /* Approx 3:2 aspect ratio for video preview */
+    object-fit: cover;
+    border-radius: 5px;
+    border: 1px solid var(--border-color);
+}
+
 
 /* Footer */
 footer {

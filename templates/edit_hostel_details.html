@@ -7,26 +7,49 @@
     <div class="container">
         <h2 class="section-title">Edit <span>Hostel Details</span></h2>
         <div class="form-container">
-            <form action="{{ url_for('edit_hostel_details') }}" method="POST">
+            <form action="{{ url_for('edit_hostel_details') }}" method="POST" id="editHostelDetailsForm" enctype="multipart/form-data"> {# ADDED: id and enctype #}
                 <div class="form-group">
                     <label for="hostel_name">Hostel Name:</label>
                     <input type="text" id="hostel_name" name="hostel_name" value="{{ hostel.hostel_name }}" required>
                 </div>
+
+                {# NEW: File input for general video #}
                 <div class="form-group">
-                    <label for="general_video_url">General Hostel Video URL:</label>
-                    <input type="url" id="general_video_url" name="general_video_url" value="{{ hostel.general_video_url }}">
-                    <p class="note">For Cloudinary upload, integrate frontend JS here.</p>
+                    <label for="upload_general_video">Upload General Hostel Video:</label>
+                    <input type="file" id="upload_general_video" name="upload_general_video" accept="video/*">
+                    <div id="general_video_upload_status" class="upload-status"></div> {# For upload messages #}
+                    <p class="note">Current Video:</p>
+                    <div class="current-media-preview">
+                        {% if hostel.general_video_url %}
+                            <video controls src="{{ hostel.general_video_url }}" class="current-video-thumbnail"></video>
+                        {% else %}
+                            <p>No current general video.</p>
+                        {% endif %}
+                    </div>
+                    {# Hidden input to store Cloudinary URL #}
+                    <input type="hidden" id="general_video_cloudinary_url" name="general_video_url" value="{{ hostel.general_video_url }}">
                 </div>
+
+                {# NEW: File input for general images #}
                 <div class="form-group">
-                    <label for="general_images">General Hostel Image URLs (one per line):</label>
-                    <textarea id="general_images" name="general_images" rows="5">{{ hostel.general_images | join('\n') }}</textarea>
-                    <p class="note">For Cloudinary upload, integrate frontend JS here.</p>
+                    <label for="upload_general_images">Upload General Hostel Images:</label>
+                    <input type="file" id="upload_general_images" name="upload_general_images" accept="image/*" multiple>
+                    <div id="general_image_upload_status" class="upload-status"></div> {# For upload messages #}
+                    <p class="note">Current Images: (Upload new images to replace existing ones)</p>
+                    <div class="current-media-preview">
+                        {% for image in hostel.general_images %}
+                            <img src="{{ image }}" alt="Current Hostel Image" class="current-image-thumbnail">
+                        {% endfor %}
+                    </div>
+                    {# Hidden input to store Cloudinary URLs #}
+                    <input type="hidden" id="general_images_cloudinary_urls" name="general_images" value="{{ hostel.general_images | join('\n') }}">
                 </div>
+
                 <div class="form-group">
                     <label for="hostel_amenities">Hostel Amenities (comma-separated):</label>
                     <textarea id="hostel_amenities" name="hostel_amenities" rows="5">{{ hostel.hostel_amenities | join(', ') }}</textarea>
                 </div>
-                <button type="submit" class="btn primary">Update Hostel Details</button>
+                <button type="submit" class="btn primary" id="editHostelDetailsSubmitBtn">Update Hostel Details</button> {# ADDED ID #}
                 <a href="{{ url_for('admin_dashboard') }}" class="btn secondary">Cancel</a>
             </form>
         </div>
