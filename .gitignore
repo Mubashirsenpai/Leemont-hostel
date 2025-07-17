@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+*.env
+.idea/  # If you use PyCharm or IntelliJ
+.vscode/ # If you use VS Code (optional, but good to ignore settings)
+
+# Database
+*.db # This will ignore leemonthostel.db and any other .db files
+/data/*.json # Recommended if you're moving to a real DB and don't want this data in Git
+
+# Flask specific
+instance/
+.flaskenv
+
+# Secrets/Environment Variables
+.env
+.flaskenv
+# If you ever hardcode API keys or sensitive info, DO NOT push them.
+# Instead, use environment variables and add them to .gitignore.

@@ -1,0 +1,65 @@
+{% extends "index.html" %}
+
+{% block title %}Book {{ room.name }} - {{ hostel.hostel_name }}{% endblock %}
+
+{% block content %}
+<section id="book-room-section" class="book-room-section py-5">
+    <div class="container">
+        <h2 class="section-title">Book <span>{{ room.name }}</span></h2>
+
+        <div class="booking-form-container">
+            <div class="room-summary">
+                <h3>Room Details</h3>
+                <img src="{{ room.images[0] if room.images else 'https://placehold.co/400x300/6c5ce7/ffffff?text=Room+Image' }}" alt="{{ room.name }}">
+                <p><strong>Name:</strong> {{ room.name }}</p>
+                <p><strong>Capacity:</strong> {{ room.capacity }} Person{% if room.capacity > 1 %}s{% endif %}</p>
+                <p><strong>Price:</strong> GHC {{ "%.2f"|format(room.price_per_academic_year) }} / Academic Year</p>
+                <p><strong>Available:</strong> {{ room.available_rooms }}</p>
+                <p>{{ room.description }}</p>
+                <div class="amenities-preview">
+                    <h4>Amenities:</h4>
+                    <ul>
+                        {% for amenity in room.amenities %}
+                            <li><i class="fas fa-check-circle"></i> {{ amenity }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+
+            <div class="booking-form">
+                <h3>Your Booking Information</h3>
+                <form action="{{ url_for('book', room_id=room.id) }}" method="POST">
+                    <div class="form-group">
+                        <label for="num_students">Number of Students:</label>
+                        <select id="num_students" name="num_students" required>
+                            {% for i in range(1, room.capacity + 1) %}
+                                <option value="{{ i }}">{{ i }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="payment_method">Payment Method:</label>
+                        <select id="payment_method" name="payment_method" required>
+                            <option value="">Select Payment Method</option>
+                            <option value="credit_card">Credit Card</option>
+                            <option value="mobile_money">Mobile Money (Ghana)</option>
+                            <option value="bank_transfer">Bank Transfer</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="duration">Booking Duration:</label>
+                        <select id="duration" name="duration" required>
+                            <option value="academic_year">1 Academic Year</option>
+                        </select>
+                    </div>
+
+                    <button type="submit" class="btn primary">Proceed to Payment (Simulated)</button>
+                </form>
+                <p class="note">Note: This is a simulated payment process for demonstration purposes. Real payment integration would require secure third-party payment gateways.</p>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

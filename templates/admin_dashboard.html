@@ -1,0 +1,96 @@
+{% extends "index.html" %}
+
+{% block title %}Admin Dashboard - {{ hostel.hostel_name }}{% endblock %}
+
+{% block content %}
+<section class="admin-dashboard py-8">
+    <div class="container">
+        <h1 class="text-center text-4xl font-bold mb-8">Admin Dashboard - {{ hostel.hostel_name }}</h1>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flash-messages mb-6">
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}">{{ message }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        {# MODIFIED: Removed mr-4 classes from buttons #}
+        <div class="admin-actions mb-8 flex justify-between items-center">
+            <h2 class="text-2xl font-semibold">Manage Rooms (Total Active: {{ total_available }})</h2>
+            <div>
+                <a href="{{ url_for('add_room') }}" class="btn primary">Add New Room</a>
+                <a href="{{ url_for('edit_hostel_details') }}" class="btn secondary">Edit Hostel Details</a>
+                <a href="{{ url_for('logout') }}" class="btn danger">Logout</a>
+            </div>
+        </div>
+
+        <div class="room-management-table bg-white shadow-md rounded-lg overflow-hidden">
+            <table class="min-w-full leading-normal">
+                <thead>
+                    <tr>
+                        <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                            Room Name
+                        </th>
+                        <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                            Capacity
+                        </th>
+                        <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                            Price (GHC)
+                        </th>
+                        <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                            Available
+                        </th>
+                        <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                            Status
+                        </th>
+                        <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                            Actions
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for room in hostel.rooms %}
+                    <tr class="text-gray-700">
+                        <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm" data-label="Room Name">
+                            {{ room.name }}
+                        </td>
+                        <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm" data-label="Capacity">
+                            {{ room.capacity }}
+                        </td>
+                        <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm" data-label="Price">
+                            {{ "%.2f"|format(room.price_per_academic_year) }}
+                        </td>
+                        <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm" data-label="Available">
+                            {{ room.available_rooms }}
+                        </td>
+                        <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm" data-label="Status">
+                            {% if room.get('is_deleted', false) %}
+                                <span class="text-red-500">Deleted (Hidden)</span>
+                            {% else %}
+                                <span class="text-green-500">Active</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-5 py-5 border-b border-gray-200 text-sm flex items-center"> 
+                            <a href="{{ url_for('edit_room', room_id=room.id) }}" class="btn btn-info btn-small">Edit</a>
+                            
+                            {% if not room.get('is_deleted', false) %}
+                                <form action="{{ url_for('delete_room', room_id=room.id) }}" method="post" onsubmit="return confirm('Are you sure you want to delete {{ room.name }}? This will mark it as deleted and hide it from public view.');">
+                                    <button type="submit" class="btn btn-danger btn-small">Delete</button>
+                                </form>
+                            {% else %}
+                                <form action="{{ url_for('restore_room', room_id=room.id) }}" method="post" onsubmit="return confirm('Are you sure you want to restore {{ room.name }}? It will become publicly available again.');">
+                                    <button type="submit" class="btn btn-success btn-small">Restore</button>
+                                </form>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+{% endblock %}

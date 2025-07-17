@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Leemont Hostel{% endblock %}</title> {# Updated to Leemont Hostel #}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <a href="{{ url_for('home') }}" class="logo-link">
+    <div class="logo">
+        <svg width="200" height="60" viewBox="0 0 200 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="0" y="0" width="200" height="60" fill="#2c3e50" rx="10"/>
+          <text x="10" y="38" font-family="Arial, sans-serif" font-size="24" font-weight="bold" fill="#f39c12">
+            Leemont
+          </text>
+          <text x="110" y="38" font-family="Arial, sans-serif" font-size="24" font-weight="bold" fill="#ecf0f1">
+            Hostel
+          </text>
+          <path d="M10 45 L190 45" stroke="#ecf0f1" stroke-width="1" stroke-dasharray="3 3"/>
+          <circle cx="100" cy="15" r="5" fill="#f39c12"/>
+        </svg>
+    </div>
+            </a>
+            <nav class="nav-links">
+                <ul>
+                    <li><a href="{{ url_for('home') }}" class="{% if request.endpoint == 'home' %}active{% endif %}">Home</a></li>
+                    <li><a href="{{ url_for('gallery') }}" class="{% if request.endpoint == 'gallery' %}active{% endif %}">Gallery</a></li>
+                    <li><a href="{{ url_for('rooms') }}" class="{% if request.endpoint == 'rooms' %}active{% endif %}">Rooms</a></li>
+                    {# The 'book' endpoint requires a room_id, so linking to rooms is more appropriate for a general "Book Now" #}
+                    {# Removed "Book Now" link as per request, replaced with auth buttons #}
+
+                    {# Authentication Links #}
+                    {% if current_user.is_authenticated %}
+                        {# If any user is logged in, show Logout #}
+                        <li><a href="{{ url_for('logout') }}" class="btn primary btn-small">Logout</a></li>
+                    {% else %}
+                        {# If no user is logged in, show Signup and Login #}
+                        <li><a href="{{ url_for('signup') }}" class="btn primary btn-small">Sign Up</a></li>
+                        <li><a href="{{ url_for('user_login') }}" class="btn secondary btn-small">Login</a></li>
+                    {% endif %}
+                    
+                    {# Admin login link is intentionally omitted from public navigation for security. #}
+                    {# Administrators can access it directly via /admin/login #}
+                </ul>
+            </nav>
+            <div class="menu-toggle">
+                <i class="fas fa-bars"></i>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="container flash-messages">
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}">{{ message }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-col">
+                    <h3>Leemont Hostel</h3> {# Updated to Leemont Hostel #}
+                    <p>Your ideal student accommodation. Comfort, convenience, and community.</p>
+                </div>
+                
+                <div class="footer-col">
+                    <h3>Quick Links</h3>
+                    <ul>
+                        <li><a href="{{ url_for('home') }}">Home</a></li>
+                        <li><a href="{{ url_for('gallery') }}">Gallery</a></li>
+                        <li><a href="{{ url_for('rooms') }}">Rooms</a></li>
+                        <li><a href="{{ url_for('rooms') }}">Book Now</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-col">
+                    <h3>Contact</h3>
+                    <ul>
+                        <li><i class="fas fa-map-marker-alt"></i> Location: [Hostel Address]</li>
+                        <li><i class="fas fa-phone"></i> Phone: +233 XXX XXX XXXX</li>
+                        <li><i class="fas fa-envelope"></i> Email: info@leemonthostel.com</li> 
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <p>&copy; <span id="year"></span> Leemont Hostel. All Rights Reserved.</p> {# Updated to Leemont Hostel #}
+            </div>
+        </div>
+    </footer>
+
+    <a href="#top" class="back-to-top">
+        <i class="fas fa-arrow-up"></i>
+    </a>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script>
+        // Set current year in footer
+        document.getElementById('year').textContent = new Date().getFullYear();
+    </script>
+</body>
+</html>

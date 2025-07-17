@@ -1,0 +1,115 @@
+{% extends "index.html" %}
+
+{% block title %}Welcome to {{ hostel.hostel_name }}{% endblock %}
+
+{% block content %}
+<section id="hero" class="hero">
+    <div class="container hero-content-container"> {# Added a new class for clarity #}
+        <div class="hero-content">
+            <h1>Welcome to <span>{{ hostel.hostel_name }}</span></h1>
+            {# Changed text and added a span for animation #}
+            <h2 class="moving-text-container">
+                <span class="moving-text">Home away from Home</span>
+            </h2>
+            <p>Experience comfort, convenience, and community at Leemont Hostel. Perfectly designed for students.</p>
+            <div class="cta-buttons">
+                <a href="{{ url_for('rooms') }}" class="btn primary">View Rooms</a>
+                <a href="{{ url_for('gallery') }}" class="btn secondary">Explore Gallery</a>
+            </div>
+        </div>
+        {# The hero-image-slider is now outside this container on purpose #}
+    </div>
+
+    {# MOVED: hero-image-slider is now a direct child of #hero #}
+    <div class="hero-image-slider">
+        <div class="slider-track">
+            {# Loop through general images, repeat if less than 8, or use placeholders #}
+            {% set images_to_display = [] %}
+            {% if hostel.general_images %}
+                {% for i in range(8) %} {# Aim for 8 images in the slider #}
+                    {% set img_index = i % hostel.general_images|length %}
+                    {% if hostel.general_images[img_index] %}
+                        {% set _ = images_to_display.append(hostel.general_images[img_index]) %}
+                    {% else %}
+                        {# Fallback placeholder if not enough images #}
+                        {% set _ = images_to_display.append('https://placehold.co/800x600/007bff/ffffff?text=Hostel+Image+' ~ (i+1)) %}
+                    {% endif %}
+                {% endfor %}
+            {% else %}
+                {# If no general images at all, use 8 distinct placeholders #}
+                {% for i in range(8) %}
+                    {% set _ = images_to_display.append('https://placehold.co/800x600/007bff/ffffff?text=Hostel+Image+' ~ (i+1)) %}
+                {% endfor %}
+            {% endif %}
+
+            {% for image_url in images_to_display %}
+                <img src="{{ image_url }}" alt="Leemont Hostel Image" class="slide-image" data-slide-index="{{ loop.index0 }}">
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<section id="about" class="about">
+    <div class="container">
+        <h2 class="section-title">About <span>{{ hostel.hostel_name }}</span></h2>
+        <div class="about-content">
+            <div class="about-text">
+                <h3>Your Home Away From Home</h3>
+                <p>{{ hostel.hostel_name }} offers a vibrant and secure environment for students. We prioritize your comfort, safety, and academic success. Our facilities are designed to provide a balanced living and learning experience.</p>
+                <p>We are conveniently located near major campuses and provide easy access to essential services. Join our community and make your university life memorable!</p>
+                
+                <div class="amenities-list">
+                    <h4>Hostel Amenities:</h4>
+                    <ul>
+                        {% for amenity in hostel.hostel_amenities %}
+                            <li><i class="fas fa-check-circle"></i> {{ amenity }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+            <div class="about-video">
+                {% if hostel.general_video_url %}
+                    <video controls src="{{ hostel.general_video_url }}" poster="{{ hostel.general_images[0] if hostel.general_images else '' }}">
+                        Your browser does not support the video tag.
+                    </video>
+                {% else %}
+                    <div class="video-placeholder">
+                        <i class="fas fa-video"></i>
+                        <p>No general video available.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</section>
+
+<section id="featured-rooms" class="featured-rooms">
+    <div class="container">
+        <h2 class="section-title">Our <span>Rooms</span></h2>
+        <div class="rooms-grid">
+            {% for room in featured_rooms %}
+            <div class="room-card">
+                <div class="room-image">
+                    {% if room.images %}
+                        <img src="{{ room.images[0] }}" alt="{{ room.name }}">
+                    {% else %}
+                        <img src="https://placehold.co/800x600/6c5ce7/ffffff?text=Room+Image" alt="Placeholder Room Image">
+                    {% endif %}
+                </div>
+                <div class="room-info">
+                    <h3>{{ room.name }} ({{ room.capacity }} Person{% if room.capacity > 1 %}s{% endif %})</h3>
+                    <p class="price">GHC {{ "%.2f"|format(room.price_per_academic_year) }} / Academic Year</p>
+                    <p class="availability">Available: {{ room.available_rooms }}</p>
+                    <p class="description">{{ room.description }}</p>
+                    <a href="{{ url_for('room_detail', room_id=room.id) }}" class="btn primary btn-small">View Details</a>
+                    {# The book button on the home page is removed as per request #}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        <div class="text-center mt-4">
+            <a href="{{ url_for('rooms') }}" class="btn primary">View All Rooms</a>
+        </div>
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,51 @@
+{% extends "index.html" %}
+
+{% block title %}Add New Room - {{ hostel.hostel_name }}{% endblock %}
+
+{% block content %}
+<section id="add-room-section" class="add-room-section py-5">
+    <div class="container">
+        <h2 class="section-title">Add <span>New Room</span></h2>
+        <div class="form-container">
+            <form action="{{ url_for('add_room') }}" method="POST">
+                <div class="form-group">
+                    <label for="name">Room Name:</label>
+                    <input type="text" id="name" name="name" required>
+                </div>
+                <div class="form-group">
+                    <label for="capacity">Capacity (1 or 2):</label>
+                    <input type="number" id="capacity" name="capacity" min="1" max="2" required>
+                </div>
+                <div class="form-group">
+                    <label for="price_per_academic_year">Price (GHC / Academic Year):</label>
+                    <input type="number" id="price_per_academic_year" name="price_per_academic_year" step="0.01" required>
+                </div>
+                <div class="form-group">
+                    <label for="available_rooms">Available Rooms:</label>
+                    <input type="number" id="available_rooms" name="available_rooms" min="0" required>
+                </div>
+                <div class="form-group">
+                    <label for="description">Description:</label>
+                    <textarea id="description" name="description" rows="5" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="amenities">Amenities (comma-separated):</label>
+                    <textarea id="amenities" name="amenities" rows="3" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="images">Image URLs (one per line):</label>
+                    <textarea id="images" name="images" rows="5"></textarea>
+                    <p class="note">For Cloudinary upload, you'd integrate frontend JS here to upload files and get URLs back.</p>
+                </div>
+                <div class="form-group">
+                    <label for="video_url">Video URL:</label>
+                    <input type="url" id="video_url" name="video_url">
+                    <p class="note">For Cloudinary upload, you'd integrate frontend JS here to upload files and get URLs back.</p>
+                </div>
+                <button type="submit" class="btn primary">Add Room</button>
+                <a href="{{ url_for('admin_dashboard') }}" class="btn secondary">Cancel</a>
+            </form>
+        </div>
+    </div>
+</section>
+{% endblock %}

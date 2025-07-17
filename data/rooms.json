@@ -1,0 +1,326 @@
+{
+  "hostel_name": "Leemont Hostel",
+  "general_video_url": "",
+  "general_images": [
+    "/static/images/Leemont Hostel Img.jpg",
+    "https://placehold.co/800x600/a29bfe/ffffff?text=Hostel+Lounge+2",
+    "https://placehold.co/800x600/00b894/ffffff?text=Hostel+Room+3",
+    "https://placehold.co/800x600/d63031/ffffff?text=Hostel+Study+4",
+    "https://placehold.co/800x600/fdcb6e/ffffff?text=Hostel+Kitchen+5",
+    "https://placehold.co/800x600/0984e3/ffffff?text=Hostel+Gym+6",
+    "https://placehold.co/800x600/636e72/ffffff?text=Hostel+Entrance+7",
+    "https://placehold.co/800x600/1a1933/ffffff?text=Hostel+Garden+8"
+  ],
+  "hostel_amenities": [
+    "WiFi",
+    "Laundry",
+    "Private Toilet",
+    "Kitchen",
+    "24/7 Security",
+    "Study Areas",
+    "Gym",
+    "Parking"
+  ],
+  "rooms": [
+    {
+      "id": "room_1",
+      "name": "Room 1",
+      "capacity": 1,
+      "price_per_academic_year": 4810.0,
+      "available_rooms": 1,
+      "description": "A comfortable single room (Room 1) with a private bathroom and study desk, ideal for focused study.",
+      "amenities": [
+        "WiFi",
+        "Private Toilet",
+        "Single Bed",
+        "Study Desk",
+        "Wardrobe"
+      ],
+      "images": [
+        "https://placehold.co/400x300/6c5ce7/ffffff?text=Room+1"
+      ],
+      "video_url": "",
+      "is_deleted": false
+    },
+    {
+      "id": "room_2",
+      "name": "Room 2",
+      "capacity": 2,
+      "price_per_academic_year": 3220.0,
+      "available_rooms": 0,
+      "description": "Spacious double room (Room 2), perfect for sharing with a roommate, featuring two beds and ample storage.",
+      "amenities": [
+        "WiFi",
+        "Shared Bathroom",
+        "Two Beds",
+        "Study Desk",
+        "Wardrobe"
+      ],
+      "images": [
+        "https://placehold.co/400x300/6c5ce7/ffffff?text=Room+2"
+      ],
+      "video_url": "",
+      "is_deleted": false
+    },
+    {
+      "id": "room_3",
+      "name": "Room 3",
+      "capacity": 1,
+      "price_per_academic_year": 4830.0,
+      "available_rooms": 1,
+      "description": "A comfortable single room (Room 3) with a private bathroom and study desk, ideal for focused study.",
+      "amenities": [
+        "WiFi",
+        "Private Toilet",
+        "Single Bed",
+        "Study Desk",
+        "Wardrobe"
+      ],
+      "images": [
+        "https://placehold.co/400x300/6c5ce7/ffffff?text=Room+3"
+      ],
+      "video_url": "",
+      "is_deleted": false
+    },
+    {
+      "id": "room_4",
+      "name": "Room 4",
+      "capacity": 2,
+      "price_per_academic_year": 3240.0,
+      "available_rooms": 1,
+      "description": "Spacious double room (Room 4), perfect for sharing with a roommate, featuring two beds and ample storage.",
+      "amenities": [
+        "WiFi",
+        "Shared Bathroom",
+        "Two Beds",
+        "Study Desk",
+        "Wardrobe"
+      ],
+      "images": [
+        "https://placehold.co/400x300/6c5ce7/ffffff?text=Room+4"
+      ],
+      "video_url": "",
+      "is_deleted": false
+    },
+    {
+      "id": "room_5",
+      "name": "Room 5",
+      "capacity": 1,
+      "price_per_academic_year": 4850.0,
+      "available_rooms": 1,
+      "description": "A comfortable single room (Room 5) with a private bathroom and study desk, ideal for focused study.",
+      "amenities": [
+        "WiFi",
+        "Private Toilet",
+        "Single Bed",
+        "Study Desk",
+        "Wardrobe"
+      ],
+      "images": [
+        "https://placehold.co/400x300/6c5ce7/ffffff?text=Room+5"
+      ],
+      "video_url": "",
+      "is_deleted": false
+    },
+    {
+      "id": "room_6",
+      "name": "Room 6",
+      "capacity": 2,
+      "price_per_academic_year": 3260.0,
+      "available_rooms": 1,
+      "description": "Spacious double room (Room 6), perfect for sharing with a roommate, featuring two beds and ample storage.",
+      "amenities": [
+        "WiFi",
+        "Shared Bathroom",
+        "Two Beds",
+        "Study Desk",
+        "Wardrobe"
+      ],
+      "images": [
+        "https://placehold.co/400x300/6c5ce7/ffffff?text=Room+6"
+      ],
+      "video_url": "",
+      "is_deleted": false
+    },
+    {
+      "id": "room_7",
+      "name": "Room 7",
+      "capacity": 1,
+      "price_per_academic_year": 4870.0,
+      "available_rooms": 1,
+      "description": "A comfortable single room (Room 7) with a private bathroom and study desk, ideal for focused study.",
+      "amenities": [
+        "WiFi",
+        "Private Toilet",
+        "Single Bed",
+        "Study Desk",
+        "Wardrobe"
+      ],
+      "images": [
+        "https://placehold.co/400x300/6c5ce7/ffffff?text=Room+7"
+      ],
+      "video_url": "",
+      "is_deleted": false
+    },
+    {
+      "id": "room_8",
+      "name": "Room 8",
+      "capacity": 2,
+      "price_per_academic_year": 3280.0,
+      "available_rooms": 1,
+      "description": "Spacious double room (Room 8), perfect for sharing with a roommate, featuring two beds and ample storage.",
+      "amenities": [
+        "WiFi",
+        "Shared Bathroom",
+        "Two Beds",
+        "Study Desk",
+        "Wardrobe"
+      ],
+      "images": [
+        "https://placehold.co/400x300/6c5ce7/ffffff?text=Room+8"
+      ],
+      "video_url": "",
+      "is_deleted": false
+    },
+    {
+      "id": "room_9",
+      "name": "Room 9",
+      "capacity": 1,
+      "price_per_academic_year": 4890.0,
+      "available_rooms": 1,
+      "description": "A comfortable single room (Room 9) with a private bathroom and study desk, ideal for focused study.",
+      "amenities": [
+        "WiFi",
+        "Private Toilet",
+        "Single Bed",
+        "Study Desk",
+        "Wardrobe"
+      ],
+      "images": [
+        "https://placehold.co/400x300/6c5ce7/ffffff?text=Room+9"
+      ],
+      "video_url": "",
+      "is_deleted": false
+    },
+    {
+      "id": "room_10",
+      "name": "Room 10",
+      "capacity": 2,
+      "price_per_academic_year": 3300.0,
+      "available_rooms": 1,
+      "description": "Spacious double room (Room 10), perfect for sharing with a roommate, featuring two beds and ample storage.",
+      "amenities": [
+        "WiFi",
+        "Shared Bathroom",
+        "Two Beds",
+        "Study Desk",
+        "Wardrobe"
+      ],
+      "images": [
+        "https://placehold.co/400x300/6c5ce7/ffffff?text=Room+10"
+      ],
+      "video_url": "",
+      "is_deleted": false
+    },
+    {
+      "id": "room_11",
+      "name": "Room 11",
+      "capacity": 1,
+      "price_per_academic_year": 4910.0,
+      "available_rooms": 1,
+      "description": "A comfortable single room (Room 11) with a private bathroom and study desk, ideal for focused study.",
+      "amenities": [
+        "WiFi",
+        "Private Toilet",
+        "Single Bed",
+        "Study Desk",
+        "Wardrobe"
+      ],
+      "images": [
+        "https://placehold.co/400x300/6c5ce7/ffffff?text=Room+11"
+      ],
+      "video_url": "",
+      "is_deleted": false
+    },
+    {
+      "id": "room_12",
+      "name": "Room 12",
+      "capacity": 2,
+      "price_per_academic_year": 3320.0,
+      "available_rooms": 1,
+      "description": "Spacious double room (Room 12), perfect for sharing with a roommate, featuring two beds and ample storage.",
+      "amenities": [
+        "WiFi",
+        "Shared Bathroom",
+        "Two Beds",
+        "Study Desk",
+        "Wardrobe"
+      ],
+      "images": [
+        "https://placehold.co/400x300/6c5ce7/ffffff?text=Room+12"
+      ],
+      "video_url": "",
+      "is_deleted": false
+    },
+    {
+      "id": "room_13",
+      "name": "Room 13",
+      "capacity": 1,
+      "price_per_academic_year": 4930.0,
+      "available_rooms": 1,
+      "description": "A comfortable single room (Room 13) with a private bathroom and study desk, ideal for focused study.",
+      "amenities": [
+        "WiFi",
+        "Private Toilet",
+        "Single Bed",
+        "Study Desk",
+        "Wardrobe"
+      ],
+      "images": [
+        "https://placehold.co/400x300/6c5ce7/ffffff?text=Room+13"
+      ],
+      "video_url": "",
+      "is_deleted": false
+    },
+    {
+      "id": "room_14",
+      "name": "Room 14",
+      "capacity": 2,
+      "price_per_academic_year": 3340.0,
+      "available_rooms": 1,
+      "description": "Spacious double room (Room 14), perfect for sharing with a roommate, featuring two beds and ample storage.",
+      "amenities": [
+        "WiFi",
+        "Shared Bathroom",
+        "Two Beds",
+        "Study Desk",
+        "Wardrobe"
+      ],
+      "images": [
+        "https://placehold.co/400x300/6c5ce7/ffffff?text=Room+14"
+      ],
+      "video_url": "",
+      "is_deleted": false
+    },
+    {
+      "id": "room_15",
+      "name": "Room 15",
+      "capacity": 1,
+      "price_per_academic_year": 4950.0,
+      "available_rooms": 1,
+      "description": "A comfortable single room (Room 15) with a private bathroom and study desk, ideal for focused study.",
+      "amenities": [
+        "WiFi",
+        "Private Toilet",
+        "Single Bed",
+        "Study Desk",
+        "Wardrobe"
+      ],
+      "images": [
+        "https://placehold.co/400x300/6c5ce7/ffffff?text=Room+15"
+      ],
+      "video_url": "",
+      "is_deleted": false
+    }
+  ]
+}

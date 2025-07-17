@@ -1,0 +1,65 @@
+{% extends "index.html" %}
+
+{% block title %}{{ room.name }} - {{ hostel.hostel_name }}{% endblock %}
+
+{% block content %}
+<section id="room-detail-section" class="room-detail-section py-5">
+    <div class="container">
+        <h2 class="section-title">{{ room.name }} <span>Details</span></h2>
+
+        <div class="room-detail-content">
+            <div class="room-detail-media">
+                {% if room.video_url %}
+                    <div class="video-container mb-4">
+                        <video controls src="{{ room.video_url }}" poster="{{ room.images[0] if room.images else '' }}">
+                            Your browser does not support the video tag.
+                        </video>
+                    </div>
+                {% else %}
+                    <div class="video-placeholder mb-4">
+                        <i class="fas fa-video"></i>
+                        <p>No video available for this room.</p>
+                    </div>
+                {% endif %}
+
+                <div class="image-grid-detail">
+                    {% for image in room.images %}
+                        <div class="image-item">
+                            <img src="{{ image }}" alt="{{ room.name }} Photo">
+                        </div>
+                    {% endfor %}
+                    {% if not room.images %}
+                        <p>No images available for this room.</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="room-detail-info">
+                <h3>{{ room.name }} ({{ room.capacity }} Person{% if room.capacity > 1 %}s{% endif %})</h3>
+                <p class="price">Price: GHC {{ "%.2f"|format(room.price_per_academic_year) }} / Academic Year</p>
+                <p class="availability">Available: {{ room.available_rooms }}</p>
+                <p class="description">{{ room.description }}</p>
+                
+                <div class="amenities-full-list">
+                    <h4>Full Amenities:</h4>
+                    <ul>
+                        {% for amenity in room.amenities %}
+                            <li><i class="fas fa-check-circle"></i> {{ amenity }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+
+                <div class="room-actions">
+                    {# If user is not authenticated, redirect to login page before booking #}
+                    {% if current_user.is_authenticated %}
+                        <a href="{{ url_for('book', room_id=room.id) }}" class="btn primary">Book This Room</a>
+                    {% else %}
+                        <a href="{{ url_for('user_login', next=url_for('book', room_id=room.id)) }}" class="btn primary">Book This Room</a>
+                    {% endif %}
+                    <a href="{{ url_for('rooms') }}" class="btn secondary">Back to Rooms</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

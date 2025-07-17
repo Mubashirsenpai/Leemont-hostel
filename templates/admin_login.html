@@ -1,0 +1,25 @@
+{% extends "index.html" %}
+
+{% block title %}Admin Login - {{ hostel.hostel_name }}{% endblock %}
+
+{% block content %}
+<section id="admin-login-section" class="admin-login-section py-5">
+    <div class="container">
+        <h2 class="section-title">Admin <span>Login</span></h2>
+        <div class="login-form-container">
+            <form action="{{ url_for('admin_login') }}" method="POST">
+                <div class="form-group">
+                    <label for="username">Username:</label>
+                    <input type="text" id="username" name="username" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password:</label>
+                    <input type="password" id="password" name="password" required>
+                </div>
+                <button type="submit" class="btn primary">Login</button>
+            </form>
+            <p class="note">Default Admin: username `admin`, password `password` (for local testing only)</p>
+        </div>
+    </div>
+</section>
+{% endblock %}

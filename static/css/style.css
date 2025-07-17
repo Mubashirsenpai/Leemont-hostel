@@ -1,0 +1,1548 @@
+/* Base Styles */
+:root {
+    --primary-color: #f39c12;
+    --primary-dark: #c0a049;
+    --secondary-color: #c0a049; /* This was previously #a29bfe, I'm keeping your latest change */
+    --dark-color: #2d3436;
+    --dark-light: #636e72;
+    --light-color: #f5f6fa;
+    --white: #ffffff;
+    --black: #000000;
+    --success: #00b894;
+    --danger: #d63031;
+    --warning: #fdcb6e;
+    --info: #0984e3;
+    --background-dark: #0f0e17;
+    --background-light: #0a0912;
+    --card-background: #1a1933;
+    --border-color: #2d2b50;
+} 
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    font-family: 'Poppins', sans-serif;
+    background-color: var(--background-dark);
+    color: var(--light-color);
+    line-height: 1.6;
+    overflow-x: hidden; /* Prevent horizontal scroll */
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+}
+
+ul {
+    list-style: none;
+}
+
+img {
+    max-width: 100%;
+    height: auto;
+    display: block; /* Prevents extra space below images */
+}
+
+.container {
+    width: 90%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 15px; /* Consistent horizontal padding */
+}
+
+.btn {
+    display: inline-block;
+    padding: 12px 24px;
+    border-radius: 30px;
+    font-weight: 500;
+    text-transform: capitalize;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    border: none;
+    outline: none;
+    text-align: center;
+}
+
+.btn.primary {
+    background-color: var(--primary-color);
+    color: var(--white);
+}
+
+.btn.primary:hover {
+    background-color: var(--primary-dark);
+    transform: translateY(-3px);
+    box-shadow: 0 10px 20px rgba(108, 92, 231, 0.3);
+}
+
+.btn.secondary {
+    background-color: transparent;
+    color: var(--white);
+    border: 2px solid var(--white);
+}
+
+.btn.secondary:hover {
+    background-color: var(--white);
+    color: var(--dark-color);
+    transform: translateY(-3px);
+    box-shadow: 0 10px 20px rgba(255, 255, 255, 0.1);
+}
+
+.btn-small {
+    /* MODIFIED: Fixed width and height for uniform buttons */
+    width: 95px; /* Increased from 80px to 95px */
+    height: 35px; /* Adjust as needed */
+    padding: 0; /* Remove padding as width/height are fixed */
+    display: flex; /* Use flexbox to center content */
+    align-items: center; /* Vertically center content */
+    justify-content: center; /* Horizontally center content */
+    font-size: 0.85rem; /* Slightly adjust font size for fixed button */
+}
+
+/* New: Button color variations */
+.btn.btn-info {
+    background-color: var(--info);
+    color: var(--white);
+}
+.btn.btn-info:hover {
+    background-color: #076bb8; /* Slightly darker info color */
+}
+
+.btn.btn-danger {
+    background-color: var(--danger);
+    color: var(--white);
+}
+.btn.btn-danger:hover {
+    background-color: #a72324; /* Slightly darker danger color */
+}
+
+.btn.btn-success {
+    background-color: var(--success);
+    color: var(--white);
+}
+.btn.btn-success:hover {
+    background-color: #008f75; /* Slightly darker success color */
+}
+
+
+.section-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 50px;
+    text-align: center;
+    position: relative;
+    color: var(--white);
+}
+
+.section-title span {
+    color: var(--primary-color);
+}
+
+.section-title::after {
+    content: '';
+    position: absolute;
+    bottom: -15px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80px;
+    height: 4px;
+    background-color: var(--primary-color);
+    border-radius: 2px;
+}
+
+/* Flash Messages */
+.flash-messages {
+    position: fixed;
+    top: 90px; /* Below header */
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1001;
+    width: 90%;
+    max-width: 500px;
+    text-align: center;
+}
+
+.alert {
+    padding: 10px 20px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+    font-weight: 500;
+    opacity: 0.95;
+    animation: fadeOut 5s forwards; /* Auto-hide after 5 seconds */
+}
+
+.alert-success {
+    background-color: var(--success);
+    color: var(--white);
+}
+
+.alert-error {
+    background-color: var(--danger);
+    color: var(--white);
+}
+
+.alert-info {
+    background-color: var(--info);
+    color: var(--white);
+}
+
+@keyframes fadeOut {
+    0% { opacity: 0.95; transform: translateY(0); }
+    80% { opacity: 0.95; transform: translateY(0); }
+    100% { opacity: 0; transform: translateY(-20px); display: none; }
+}
+
+
+/* Header Styles */
+header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 1000; /* High z-index to be on top */
+    padding: 20px 0;
+    transition: all 0.3s ease;
+    background-color: var(--background-dark); /* Ensure header has background */
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2); /* Subtle shadow */
+}
+
+header.scrolled {
+    background-color: rgba(15, 14, 23, 0.9);
+    padding: 15px 0;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+}
+
+header .container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* Styling for the clickable logo link */
+.logo-link {
+    display: flex; /* Ensures the link behaves like a flex container */
+    align-items: center; /* Vertically aligns the logo SVG */
+    text-decoration: none; /* Removes underline from the link */
+    color: inherit; /* Inherits color from parent if needed, though SVG fill handles it */
+}
+
+.logo {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--primary-dark);
+    display: flex;
+    align-items: center;
+}
+
+.logo span {
+    color: var(--primary-color);
+}
+
+.nav-links ul {
+    display: flex;
+}
+
+.nav-links ul li {
+    margin-left: 30px;
+}
+
+.nav-links ul li a {
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--light-color);
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.nav-links ul li a::after {
+    content: '';
+    position: absolute;
+    bottom: -5px;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background-color: var(--primary-color);
+    transition: all 0.3s ease;
+}
+
+.nav-links ul li a:hover::after,
+.nav-links ul li a.active::after {
+    width: 100%;
+}
+
+.nav-links ul li a:hover,
+.nav-links ul li a.active {
+    color: var(--primary-color);
+}
+
+.menu-toggle {
+    display: none; /* Hidden on desktop */
+    cursor: pointer;
+}
+
+.menu-toggle i {
+    font-size: 1.5rem;
+    color: var(--white);
+}
+
+/* Hero Section */
+.hero {
+    height: 92vh; /* Increased height for a bigger view on desktop */
+    min-height: 500px; /* Minimum height to ensure it's always visible */
+    padding-top: 100px; /* Space for fixed header */
+    padding-bottom: 40px;
+    position: relative; /* Crucial for positioning children */
+    overflow: hidden;
+    background: linear-gradient(135deg, rgba(15, 14, 23, 0.9) 0%, rgba(108, 92, 231, 0.3) 100%);
+    width: 95vw; /* Make the hero section span the full viewport width */
+    margin-left: calc(50% - 50vw); /* Center the 100vw width element */
+    z-index: 1; /* Ensure hero is below header (header z-index 1000) */
+    justify-self: center;
+    margin-top: 60px;
+    border-radius: 12px;
+
+    /* Desktop Grid Layout for Hero Content and Slider */
+    display: grid;
+    /* Defines two columns:
+       1. Content column: minmax(auto, 600px) - takes content's natural width up to 600px.
+          This ensures text doesn't get too wide.
+       2. Slider column: 1fr - takes all remaining available space, pushing to the right edge.
+    */
+    grid-template-columns: minmax(auto, 600px) 1fr;
+    /* MODIFIED: Increased gap for more space between text and slider */
+    gap: 80px; /* Increased from 40px to 80px */
+    align-items: center; /* Vertically center grid items */
+}
+
+.hero .hero-content-container {
+    /* This element is the .container that holds the text.
+       It's now a grid item in the first column. */
+    grid-column: 1 / 2; /* Place in the first grid column */
+    /* Override default .container margin for grid context */
+    margin: 0; 
+    /* The width of this column is already controlled by grid-template-columns.
+       We only need to ensure its internal padding is respected. */
+    padding: 0 15px; /* Keep consistent horizontal padding */
+    z-index: 2; /* Ensure content is above slider */
+    /* MODIFIED: Increased right padding to push content further from the slider */
+    padding-right: 40px; /* Increased from 20px to 40px */
+}
+
+.hero-content { /* The actual text content inside hero-content-container */
+    text-align: left;
+    /* NEW: Hide overflow to prevent moving text from extending beyond its container */
+    overflow: hidden; 
+    position: relative; /* Needed for absolute positioning of moving text if used, or for containing animation */
+}
+
+.hero-content h1 {
+    font-size: 3.5rem;
+    font-weight: 700;
+    margin-bottom: 15px;
+    line-height: 1.2;
+    color: var(--white);
+}
+
+.hero-content h1 span {
+    color: var(--primary-color);
+}
+
+/* Container for the moving text to control its overflow */
+.moving-text-container {
+    /* Inherit H2 styles, but allow text to move */
+    font-size: 2rem;
+    font-weight: 600;
+    margin-bottom: 20px;
+    color: var(--secondary-color);
+    white-space: nowrap; /* Keep text on a single line */
+    overflow: hidden; /* Hide overflow from the moving text itself */
+    position: relative; /* For absolute positioning of the moving text inside */
+}
+
+/* The actual moving text */
+.moving-text {
+    display: inline-block; /* Essential for animation to work */
+    animation: slide-left 10s linear infinite; /* Adjust duration as needed */
+    /* MODIFIED: Increased padding-left to start further off-screen */
+    padding-left: 100%; /* Increased from 100% to 200% */
+}
+
+/* Keyframes for the sliding animation */
+@keyframes slide-left {
+    0% {
+        transform: translateX(0%); /* Start at its natural position (after padding-left: 100%) */
+    }
+    100% {
+        transform: translateX(-100%); /* Move entirely to the left, off-screen */
+    }
+}
+
+
+.hero-content p {
+    font-size: 1.1rem;
+    margin-bottom: 30px;
+    opacity: 0.9;
+}
+
+.cta-buttons {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.hero-image-slider { /* Container for the image slider */
+    /* This element is now a grid item in the second column. */
+    grid-column: 2 / 3; /* Place in the second grid column */
+    height: 105%; /* Fill the height of its grid cell */
+    width: 100%; /* Fill the width of its grid cell */
+    overflow: hidden;
+    border-radius: 15px;
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+    z-index: 1; /* Below content, but above hero background */
+    /* Remove any absolute positioning that was here, as grid handles it */
+    position: relative; /* Keep relative for inner slider-track absolute positioning */
+    margin: 20px;
+    justify-self: right;
+}
+
+.slider-track {
+    position: absolute; /* Position relative to .hero-image-slider */
+    top: 0;
+    left: 0;
+    width: 100%; /* Track takes 100% width of its parent */
+    height: 100%;
+    display: flex; /* Flexbox for image positioning */
+}
+
+.slider-track .slide-image {
+    width: 100%; /* Each image takes 100% of the slider-track's width */
+    height: 100%;
+    object-fit: cover;
+    flex-shrink: 0; /* Prevent images from shrinking */
+    position: absolute;
+    top: 0;
+    left: 0;
+    opacity: 0; /* Hidden by default */
+    transition: opacity 1s ease-in-out; /* Fade transition */
+}
+
+.slider-track .slide-image.active {
+    opacity: 1; /* Active image is visible */
+}
+
+
+/* About Section */
+.about {
+    padding: 100px 0;
+    background-color: var(--background-light);
+}
+
+.about-content {
+    display: flex;
+    align-items: center;
+    gap: 50px;
+    flex-wrap: wrap; /* Allow wrapping on smaller screens */
+}
+
+.about-text {
+    flex: 1;
+    min-width: 300px; /* Ensure text block doesn't get too small */
+    box-sizing: border-box;
+    word-wrap: break-word; /* Ensure long words/URLs break */
+    overflow-wrap: break-word;
+}
+
+.about-text h3 {
+    font-size: 1.8rem;
+    margin-bottom: 20px;
+    color: var(--white);
+}
+
+.about-text p {
+    margin-bottom: 20px;
+    opacity: 0.9;
+}
+
+.amenities-list ul {
+    list-style: none;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.amenities-list li {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.95rem;
+    color: var(--light-color);
+}
+
+.amenities-list li i {
+    color: var(--success);
+}
+
+.about-video {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-width: 300px; /* Ensure video container has minimum width */
+}
+
+.about-video video {
+    max-width: 100%;
+    height: auto;
+    border-radius: 15px;
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+}
+
+.video-placeholder {
+    width: 100%;
+    padding-top: 56.25%; /* 16:9 Aspect Ratio */
+    position: relative;
+    background-color: var(--card-background);
+    border-radius: 15px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    color: var(--dark-light);
+    font-size: 1.2rem;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+.video-placeholder i {
+    font-size: 3rem;
+    margin-bottom: 10px;
+}
+
+/* Featured Rooms Section (on Home page) */
+.featured-rooms {
+    padding: 80px 0;
+    background-color: var(--background-dark);
+}
+
+.rooms-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 30px;
+}
+
+.room-card {
+    background-color: var(--card-background);
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.room-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 15px 30px rgba(var(--primary-color), 0.3);
+}
+
+.room-image {
+    height: 220px;
+    overflow: hidden;
+}
+
+.room-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+}
+
+.room-card:hover .room-image img {
+    transform: scale(1.1);
+}
+
+.room-info {
+    padding: 20px;
+}
+
+.room-info h3 {
+    font-size: 1.4rem;
+    margin-bottom: 10px;
+    color: var(--white);
+}
+
+.room-info .price {
+    font-size: 1.1rem;
+    color: var(--secondary-color);
+    margin-bottom: 5px;
+}
+
+.room-info .availability {
+    font-size: 0.95rem;
+    color: var(--light-color);
+    margin-bottom: 15px;
+}
+
+.room-info .description {
+    font-size: 0.9rem;
+    opacity: 0.8;
+    margin-bottom: 15px;
+}
+
+.room-info .btn {
+    margin-top: 10px;
+    margin-right: 10px;
+}
+
+.amenities-preview ul {
+    list-style: none;
+    padding: 0;
+    margin-bottom: 15px;
+}
+
+.amenities-preview li {
+    font-size: 0.9rem;
+    color: var(--light-color);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.amenities-preview li i {
+    color: var(--success);
+}
+
+
+/* Gallery Section */
+.gallery-section {
+    padding-top: 120px; /* To account for fixed header */
+    background-color: var(--background-light);
+    min-height: 100vh; /* Ensure it takes full height */
+}
+
+.gallery-section h3 {
+    font-size: 1.8rem;
+    color: var(--white);
+    margin-top: 40px;
+    margin-bottom: 20px;
+}
+
+/* General Video Container for consistent aspect ratio */
+.video-container {
+    width: 100%;
+    position: relative;
+    padding-top: 56.25%; /* 16:9 Aspect Ratio (height is 56.25% of width) */
+    background-color: var(--card-background);
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+.video-container video,
+.video-container .video-placeholder {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* Ensure video covers the container */
+}
+
+.video-container .video-placeholder {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    color: var(--dark-light);
+    font-size: 1.2rem;
+}
+
+.video-container .video-placeholder i {
+    font-size: 3rem;
+    margin-bottom: 10px;
+}
+
+
+/* Image Grid for Gallery and Room Details */
+.image-grid, .image-grid-detail {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); /* Adjusted minmax for better mobile flow */
+    gap: 15px;
+}
+
+.image-item {
+    background-color: var(--card-background);
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    position: relative;
+    padding-top: 75%; /* 4:3 Aspect Ratio for images (height is 75% of width) */
+}
+
+.image-item img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.image-item:hover img {
+    transform: scale(1.05);
+}
+
+.room-media-section {
+    background-color: var(--card-background);
+    padding: 30px;
+    border-radius: 15px;
+    margin-bottom: 40px;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+/* Rooms Section (All Rooms) */
+.rooms-section {
+    padding-top: 120px; /* To account for fixed header */
+    background-color: var(--background-dark);
+    min-height: 100vh; /* Ensure it takes full height */
+}
+/* Reusing .rooms-grid and .room-card from home section */
+
+
+/* Room Detail Section */
+.room-detail-section {
+    padding-top: 120px; /* To account for fixed header */
+    background-color: var(--background-light);
+    min-height: 100vh; /* Ensure it takes full height */
+}
+
+.room-detail-content {
+    display: flex;
+    gap: 40px;
+    flex-wrap: wrap; /* Allow wrapping on smaller screens */
+    align-items: flex-start;
+}
+
+.room-detail-media {
+    flex: 2; /* Takes more space for media */
+    min-width: 300px;
+}
+
+/* image-grid-detail already covered by .image-grid */
+
+
+.room-detail-info {
+    flex: 1; /* Takes less space for info */
+    min-width: 300px;
+    background-color: var(--card-background);
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+.room-detail-info h3 {
+    font-size: 1.8rem;
+    margin-bottom: 15px;
+    color: var(--white);
+}
+
+.room-detail-info .price,
+.room-detail-info .availability {
+    font-size: 1.1rem;
+    color: var(--secondary-color);
+    margin-bottom: 10px;
+}
+
+.room-detail-info .description {
+    font-size: 1rem;
+    opacity: 0.9;
+    margin-bottom: 20px;
+}
+
+.amenities-full-list h4 {
+    font-size: 1.2rem;
+    margin-bottom: 10px;
+    color: var(--white);
+}
+
+.amenities-full-list ul {
+    list-style: none;
+    padding: 0;
+}
+
+.amenities-full-list li {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+    font-size: 0.95rem;
+}
+
+.amenities-full-list li i {
+    color: var(--success);
+}
+
+.room-actions {
+    margin-top: 30px;
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+/* Book Room Section */
+.book-room-section {
+    padding-top: 120px; /* To account for fixed header */
+    background-color: var(--background-dark);
+    min-height: 100vh; /* Ensure it takes full height */
+}
+
+.booking-form-container {
+    display: flex;
+    gap: 40px;
+    flex-wrap: wrap;
+    align-items: flex-start;
+}
+
+.room-summary {
+    flex: 1;
+    min-width: 300px;
+    background-color: var(--card-background);
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+.room-summary h3 {
+    font-size: 1.6rem;
+    margin-bottom: 20px;
+    color: var(--white);
+}
+
+.room-summary img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 10px;
+    margin-bottom: 20px;
+}
+
+.room-summary p {
+    margin-bottom: 10px;
+    font-size: 1rem;
+}
+
+.room-summary p strong {
+    color: var(--primary-color);
+}
+
+.booking-form {
+    flex: 1;
+    min-width: 300px;
+    background-color: var(--card-background);
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+.booking-form h3 {
+    font-size: 1.6rem;
+    margin-bottom: 20px;
+    color: var(--white);
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: var(--light-color);
+}
+
+.form-group input[type="text"],
+.form-group input[type="email"],
+.form-group input[type="password"],
+.form-group input[type="number"],
+.form-group input[type="url"],
+.form-group textarea,
+.form-group select {
+    width: 100%;
+    padding: 12px 15px;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    background-color: var(--background-dark);
+    color: var(--white);
+    font-family: 'Poppins', sans-serif;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 10px rgba(108, 92, 231, 0.3);
+}
+
+.form-group textarea {
+    resize: vertical;
+    min-height: 100px;
+}
+
+.booking-form .note {
+    font-size: 0.85rem;
+    color: var(--dark-light);
+    margin-top: 20px;
+    text-align: center;
+}
+
+/* Admin Login Section */
+.admin-login-section {
+    padding-top: 120px;
+    background-color: var(--background-dark);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center; /* Center content vertically and horizontally */
+}
+
+/* New: General styling for auth sections (signup, login) */
+.auth-section {
+    padding-top: 120px; /* Pushes content below fixed header */
+    background-color: var(--background-dark);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.login-form-container,
+.auth-section .form-container { /* Apply to both admin and new auth forms */
+    max-width: 400px;
+    margin: 0 auto;
+    background-color: var(--card-background);
+    padding: 40px;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    text-align: center; /* Center form content */
+}
+
+.login-form-container .note,
+.auth-section .form-container .note {
+    font-size: 0.85rem;
+    color: var(--dark-light);
+    margin-top: 20px;
+    text-align: center; /* Ensure note text is centered */
+}
+
+/* Style for the links within the note text */
+.login-form-container .note a,
+.auth-section .form-container .note a {
+    color: var(--primary-color); /* Make the link text stand out */
+    font-weight: 600; /* Make it bold */
+    text-decoration: underline; /* Add underline to make it clearly a link */
+    transition: color 0.3s ease;
+}
+
+.login-form-container .note a:hover,
+.auth-section .form-container .note a:hover {
+    color: var(--primary-dark); /* Darken on hover */
+    text-decoration: none; /* Remove underline on hover for a subtle effect */
+}
+
+
+/* Admin Dashboard Section */
+.admin-dashboard-section {
+    /* MODIFIED: Increased padding-top for desktop */
+    padding-top: 140px; /* Adjusted to give more space from fixed header */
+    background-color: var(--background-light);
+    min-height: 100vh;
+}
+
+.admin-actions {
+    display: flex;
+    /* MODIFIED: Add gap for spacing between buttons */
+    gap: 15px; /* Adjust as needed */
+    margin-bottom: 40px;
+    flex-wrap: wrap;
+    justify-content: center; /* Center buttons on smaller screens */
+}
+/* NEW: Ensure buttons within admin-actions have proper styling */
+.admin-actions .btn {
+    /* Ensure they use the default btn padding and size, not btn-small */
+    padding: 12px 24px; /* Standard button padding */
+    font-size: 1rem; /* Standard button font size */
+    width: auto; /* Allow width to be determined by content + padding */
+    height: auto; /* Allow height to be determined by content + padding */
+}
+
+
+.hostel-overview-summary {
+    background-color: var(--card-background);
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    margin-bottom: 40px;
+}
+
+.hostel-overview-summary p {
+    margin-bottom: 10px;
+    font-size: 1.1rem;
+}
+
+.hostel-overview-summary p strong {
+    color: var(--primary-color);
+}
+
+.room-management-table {
+    overflow-x: auto; /* Allows horizontal scroll on small screens */
+    background-color: var(--card-background);
+    border-radius: 15px;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+}
+
+.room-management-table table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 600px; /* Ensure table doesn't collapse too much */
+}
+
+.room-management-table th,
+.room-management-table td {
+    padding: 15px;
+    text-align: left;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.room-management-table th {
+    background-color: var(--primary-color); /* Changed to #f39c12 */
+    color: var(--white);
+    font-weight: 600;
+}
+
+/* MODIFIED: Add gap to the td containing action buttons */
+.room-management-table td.flex { /* Target the specific td with flex display */
+    gap: 10px; /* Small space between buttons */
+}
+
+.room-management-table tr:last-child td {
+    border-bottom: none;
+}
+
+/* Removed old specific button styles as they are now handled by .btn.btn-info, etc. */
+/*
+.room-management-table .edit-btn {
+    background-color: var(--info);
+    margin-right: 10px;
+}
+
+.room-management-table .delete-btn {
+    background-color: var(--danger);
+}
+*/
+
+/* Edit/Add Room Section */
+.edit-room-section,
+.add-room-section,
+.edit-hostel-details-section {
+    /* MODIFIED: Increased padding-top for desktop */
+    padding-top: 140px; /* Adjusted to give more space from fixed header */
+    background-color: var(--background-dark);
+    min-height: 100vh;
+    display: flex; /* Use flex to center content */
+    align-items: center; /* Center vertically */
+    justify-content: center; /* Center horizontally */
+}
+
+.form-container {
+    max-width: 700px;
+    width: 90%; /* Make it responsive */
+    margin: 0 auto;
+    background-color: var(--card-background);
+    padding: 40px;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.form-container .btn {
+    margin-top: 20px;
+    margin-right: 15px;
+    width: auto; /* Allow buttons to size naturally within flex */
+}
+.form-container form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px; /* Space out form groups */
+}
+.form-container .form-group {
+    margin-bottom: 0; /* Reset margin as gap handles spacing */
+}
+.form-container .form-group textarea {
+    min-height: 80px; /* Smaller default for admin forms */
+}
+
+/* Footer */
+footer {
+    background-color: var(--background-light);
+    padding: 70px 0 0;
+    margin-top: 50px; /* Add some space above footer */
+}
+
+.footer-content {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 40px;
+    margin-bottom: 50px;
+}
+
+.footer-col h3 {
+    font-size: 1.5rem;
+    margin-bottom: 20px;
+    color: var(--primary-color); /* Changed from var(--white) to var(--primary-color) */
+}
+
+.footer-col p {
+    margin-bottom: 20px;
+    opacity: 0.8;
+}
+
+.footer-social {
+    display: flex;
+    gap: 15px;
+}
+
+.footer-social a {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: rgba(108, 92, 231, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+}
+
+.footer-social a:hover {
+    background-color: var(--primary-color);
+    transform: translateY(-5px);
+}
+
+.footer-col ul li {
+    margin-bottom: 10px;
+}
+
+.footer-col ul li a {
+    transition: all 0.3s ease;
+    opacity: 0.8;
+}
+
+.footer-col ul li a:hover {
+    color: var(--primary-color); /* This uses the --primary-color variable */
+    opacity: 1;
+    padding-left: 5px;
+}
+
+.footer-col ul li i {
+    margin-right: 8px;
+    color: var(--primary-color); /* This uses the --primary-color variable */
+}
+
+.footer-bottom {
+    text-align: center;
+    padding: 20px 0;
+    border-top: 1px solid var(--border-color);
+}
+
+/* Back to Top Button */
+.back-to-top {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background-color: var(--primary-color);
+    color: var(--white);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    box-shadow: 0 5px 20px rgba(108, 92, 231, 0.3);
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    z-index: 999;
+}
+
+.back-to-top.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.back-to-top:hover {
+    background-color: var(--primary-dark);
+    transform: translateY(-5px);
+}
+
+/* Responsive Styles */
+/* Tablet and smaller desktops */
+@media (max-width: 992px) {
+    .hero {
+        height: auto; /* Allow height to adjust based on content */
+        min-height: 600px; /* Ensure a minimum height for the hero section */
+        padding-bottom: 50px; /* Add some padding at the bottom */
+        flex-direction: column; /* Stack content and slider vertically */
+        width: 100%; /* Reset to normal width */
+        margin-left: 0; /* Reset margin */
+        display: flex; /* Revert to flex for mobile/tablet stacking */
+        gap: 0; /* Remove gap from grid */
+    }
+    .hero .hero-content-container { /* Revert to column layout for content and slider */
+        flex: 0 0 auto; /* Reset flex for mobile, allow content to size naturally */
+        width: 100%; /* Take full width of parent */
+        max-width: 1200px; /* Maintain max-width */
+        margin: 0 auto; /* Center it */
+        padding-top: 30px; /* Add some top padding to container */
+        text-align: center; /* Center text for mobile */
+        padding-right: 0; /* Remove right padding for mobile */
+    }
+    .hero-content {
+        text-align: center; /* Ensure text is centered on smaller screens */
+        /* MODIFIED: Added horizontal padding for mobile */
+        padding: 0 20px; /* Added 20px padding on left/right */
+    }
+    .hero-image-slider { /* Adjust slider for tablets */
+        position: relative; /* Revert to relative positioning */
+        width: 100%; /* Take full width */
+        height: 0; /* Enable padding-top aspect ratio trick */
+        padding-top: 56.25%; /* 16:9 aspect ratio (height is 56.25% of width) */
+        min-height: 250px; /* Ensure a minimum height for the slider */
+        margin-top: 30px; /* Space above it when stacked */
+        left: 0; /* Reset left/right for relative positioning */
+        right: auto;
+        flex: none; /* Remove flex property for mobile */
+    }
+    .cta-buttons {
+        justify-content: center; /* Center buttons on mobile */
+    }
+
+    /* About Section adjustments */
+    .about-content {
+        flex-direction: column; /* Stacks image and text vertically */
+        gap: 40px; /* Adjust gap between image and text */
+        align-items: center; /* Center items when stacked */
+    }
+    
+    .about-text {
+        text-align: center; /* Centers text content when stacked */
+        padding-left: 5vw;  /* Moderate padding for tablets */
+        padding-right: 5vw;
+        min-width: unset; /* Allow it to shrink */
+    }
+
+    .amenities-list ul {
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); /* More compact on tablets */
+        max-width: 600px; /* Constrain width for better centering */
+        margin-left: auto;
+        margin-right: auto;
+    }
+    .amenities-list li {
+        justify-content: flex-start; /* Keep items left-aligned within their grid cell */
+    }
+
+    .about-video {
+        min-width: unset; /* Allow video to shrink */
+        width: 90%; /* Give it a more defined width */
+    }
+
+    .room-detail-content,
+    .booking-form-container {
+        flex-direction: column;
+        align-items: center;
+    }
+    .room-detail-media,
+    .room-detail-info,
+    .room-summary,
+    .booking-form {
+        min-width: unset;
+        width: 100%;
+    }
+    
+    .footer-content {
+        grid-template-columns: repeat(2, 1fr); /* Two columns on tablets */
+        gap: 30px;
+    }
+}
+
+/* Mobile phones */
+@media (max-width: 768px) {
+    .menu-toggle {
+        display: block; /* Show hamburger icon */
+    }
+    
+    .nav-links {
+        position: fixed;
+        top: 80px; /* Below header */
+        left: -100%; /* Off-screen by default */
+        width: 100%;
+        height: calc(100vh - 80px); /* Full height minus header */
+        background-color: var(--background-light);
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.5s ease;
+        overflow-y: auto; /* Enable scroll for long menus */
+    }
+    
+    .nav-links.active {
+        left: 0; /* Slide in */
+    }
+    
+    .nav-links ul {
+        flex-direction: column;
+        align-items: center;
+        padding: 20px 0; /* Add padding for mobile menu */
+    }
+    
+    .nav-links ul li {
+        margin: 15px 0; /* More vertical space */
+        width: 80%; /* Give list items a width for buttons to fill */
+        text-align: center; /* Center any text directly in li */
+    }
+
+    /* NEW: Styles for buttons inside mobile navigation */
+    .nav-links ul li .btn {
+        width: 100%; /* Make buttons fill the width of their list item */
+        padding: 10px 15px; /* Adjust padding for better touch target */
+        font-size: 1rem; /* Increase font size for readability */
+        height: auto; /* Remove fixed height */
+    }
+    .nav-links ul li .btn-small { /* Override specific btn-small properties for mobile menu buttons */
+        width: 100%; /* Ensure they take full width */
+        height: auto; /* Allow height to adjust to content */
+        padding: 10px 15px; /* Consistent padding */
+        font-size: 1rem; /* Consistent font size */
+    }
+    
+    .section-title {
+        font-size: 2rem;
+        margin-bottom: 40px; /* Adjust spacing */
+    }
+    
+    .hero {
+        min-height: 500px; /* Maintain height for content */
+    }
+
+    .hero-content h1 {
+        font-size: 2.8rem; /* Smaller hero title */
+    }
+    
+    .hero-content h2 {
+        font-size: 1.8rem; /* Smaller hero subtitle */
+    }
+
+    .cta-buttons {
+        flex-direction: column;
+        gap: 15px;
+    }
+    .btn {
+        width: 100%; /* Full width buttons */
+    }
+
+    /* About Section adjustments for phones */
+    .about {
+        padding: 60px 0; /* Reduce section vertical padding */
+    }
+    .about-text {
+        padding-left: 20px; /* Fixed pixel padding for consistent margins */
+        padding-right: 20px;
+        font-size: 1rem; /* Standard font size */
+    }
+    .about-text h3 {
+        font-size: 1.6rem; /* Adjust heading size */
+    }
+    .amenities-list ul {
+        grid-template-columns: 1fr; /* Stack amenities on smaller phones */
+        max-width: 300px;
+    }
+
+    /* Gallery Specific Adjustments for Mobile */
+    .gallery-section .image-grid {
+        grid-template-columns: 1fr; /* Stack images on mobile */
+    }
+    .image-grid-detail { /* Room detail image grid, also stacks */
+        grid-template-columns: 1fr;
+    }
+    .image-item {
+        padding-top: 75%; /* Maintain 4:3 aspect ratio on mobile */
+    }
+
+    /* NEW: Admin Dashboard Mobile Adjustments */
+    .admin-dashboard-section {
+        /* MODIFIED: Increased padding-top for mobile */
+        padding-top: 120px; /* Adjusted to ensure content clears fixed header */
+    }
+
+    .admin-actions {
+        flex-direction: column; /* Stack action buttons vertically */
+        align-items: center; /* Center them */
+        gap: 15px; /* Add vertical space between stacked buttons */
+        margin-bottom: 30px; /* Adjust margin */
+    }
+    .admin-actions .btn {
+        width: 90%; /* Make admin action buttons wider on mobile */
+        margin: 0 auto; /* Center them */
+    }
+    .admin-dashboard-section h1,
+    .admin-dashboard-section h2 {
+        padding-left: 15px; /* Add some horizontal padding to titles */
+        padding-right: 15px;
+        text-align: center; /* Center titles */
+    }
+    .admin-dashboard-section h1 {
+        margin-top: 20px; /* Ensure space below navbar */
+        margin-bottom: 20px;
+    }
+    .admin-dashboard-section h2 {
+        margin-top: 20px; /* Ensure space below navbar or h1 */
+        margin-bottom: 20px;
+    }
+
+
+    .room-management-table table {
+        min-width: auto; /* Allow table to shrink */
+    }
+    /* Make table cells stack for better readability on small screens */
+    .room-management-table table,
+    .room-management-table thead,
+    .room-management-table tbody,
+    .room-management-table th,
+    .room-management-table td,
+    .room-management-table tr {
+        display: block;
+    }
+    .room-management-table thead tr {
+        position: absolute;
+        top: -9999px;
+        left: -9999px;
+    }
+    .room-management-table tr {
+        border: 1px solid var(--border-color);
+        margin-bottom: 15px;
+        border-radius: 10px;
+        overflow: hidden;
+    }
+    .room-management-table td {
+        border: none;
+        position: relative;
+        padding-left: 50%;
+        text-align: right;
+        font-size: 1rem;
+    }
+    .room-management-table td::before {
+        content: attr(data-label);
+        position: absolute;
+        left: 15px;
+        width: calc(50% - 30px);
+        white-space: nowrap;
+        text-align: left;
+        font-weight: 600;
+        color: var(--primary-color);
+    }
+    .room-management-table td:last-child {
+        border-bottom: none;
+    }
+    .room-management-table .action-buttons {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        padding-top: 10px;
+        border-top: 1px solid var(--border-color);
+        margin-top: 10px;
+    }
+    .room-management-table .action-buttons .btn {
+        flex: 1;
+    }
+
+    .form-container {
+        padding: 20px; /* Reduce padding for smaller screens */
+    }
+    .form-container .btn {
+        width: 100%; /* Full width buttons in forms */
+        margin-right: 0;
+        margin-bottom: 10px; /* Space out stacked buttons */
+    }
+
+    .footer-content {
+        grid-template-columns: 1fr; /* Single column on small phones */
+        text-align: center;
+    }
+    .footer-social {
+        justify-content: center; /* Center social icons */
+    }
+    .footer-col ul {
+        padding: 0;
+    }
+    .footer-col ul li {
+        justify-content: center;
+    }
+    .footer-col ul li a {
+        padding-left: 0; /* Remove padding from hover effect */
+    }
+}
+
+/* Extra small phones */
+@media (max-width: 480px) {
+    .container {
+        padding: 0 10px; /* Even tighter padding for very small screens */
+    }
+    
+    .hero-content h1 {
+        font-size: 2rem; /* Slightly smaller for very small screens */
+    }
+    
+    .hero-content h2 {
+        font-size: 1.2rem; /* Slightly smaller for very small screens */
+    }
+
+    .section-title {
+        font-size: 1.6rem;
+        margin-bottom: 25px;
+    }
+
+    .hero-image-slider { /* Adjust slider for very small phones */
+        padding-top: 75%; /* 4:3 aspect ratio (height is 75% of width) - slightly wider than square */
+        min-height: 180px; /* Ensure a reasonable minimum height */
+    }
+
+    .room-card .room-info h3 {
+        font-size: 1.1rem;
+    }
+    .room-card .room-info .price {
+        font-size: 0.9rem;
+    }
+    .room-card .room-info .availability {
+        font-size: 0.85rem;
+    }
+    .room-card .room-info .description {
+        font-size: 0.8rem;
+    }
+    .room-card .btn {
+        padding: 5px 10px;
+        font-size: 0.75rem;
+    }
+    
+    .image-item { /* Ensure images in gallery maintain aspect ratio */
+        padding-top: 75%; /* 4:3 aspect ratio */
+    }
+}

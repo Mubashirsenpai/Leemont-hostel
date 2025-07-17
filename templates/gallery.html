@@ -1,0 +1,66 @@
+{% extends "index.html" %}
+
+{% block title %}Gallery - {{ hostel.hostel_name }}{% endblock %}
+
+{% block content %}
+<section id="gallery-section" class="gallery-section py-5">
+    <div class="container">
+        <h2 class="section-title">Our <span>Gallery</span></h2>
+
+        <h3>Hostel Overview Video</h3>
+        <div class="video-container mb-5">
+            {% if hostel.general_video_url %}
+                <video controls src="{{ hostel.general_video_url }}" poster="{{ hostel.general_images[0] if hostel.general_images else '' }}">
+                    Your browser does not support the video tag.
+                </video>
+            {% else %}
+                <div class="video-placeholder">
+                    <i class="fas fa-video"></i>
+                    <p>No general hostel video available.</p>
+                </div>
+            {% endif %}
+        </div>
+
+        <h3>Hostel Photos</h3>
+        <div class="image-grid mb-5">
+            {% for image in hostel.general_images %}
+                <div class="image-item">
+                    <img src="{{ image }}" alt="Hostel Photo">
+                </div>
+            {% endfor %}
+            {% if not hostel.general_images %}
+                <p>No general hostel images available.</p>
+            {% endif %}
+        </div>
+
+        <h3>Room Videos & Photos</h3>
+        {% for room in hostel.rooms %}
+            <div class="room-media-section mb-5">
+                <h4>{{ room.name }} ({{ room.capacity }} Person{% if room.capacity > 1 %}s{% endif %})</h4>
+                <div class="video-container mb-3">
+                    {% if room.video_url %}
+                        <video controls src="{{ room.video_url }}" poster="{{ room.images[0] if room.images else '' }}">
+                            Your browser does not support the video tag.
+                        </video>
+                    {% else %}
+                        <div class="video-placeholder">
+                            <i class="fas fa-video"></i>
+                            <p>No video available for this room.</p>
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="image-grid">
+                    {% for image in room.images %}
+                        <div class="image-item">
+                            <img src="{{ image }}" alt="{{ room.name }} Photo">
+                        </div>
+                    {% endfor %}
+                    {% if not room.images %}
+                        <p>No images available for this room.</p>
+                    {% endif %}
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}
