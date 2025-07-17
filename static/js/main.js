@@ -49,8 +49,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // IMPORTANT: Replace 'YOUR_CLOUDINARY_CLOUD_NAME' and 'YOUR_CLOUDINARY_UPLOAD_PRESET'
     // You will get these from your Cloudinary Dashboard.
     // The upload preset should be unsigned for direct browser uploads.
-    const CLOUDINARY_CLOUD_NAME = 'YOUR_CLOUDINARY_CLOUD_NAME'; // Replace with your Cloud Name
-    const CLOUDINARY_UPLOAD_PRESET = 'YOUR_CLOUDINARY_UPLOAD_PRESET'; // Replace with your Upload Preset (e.g., 'ml_default' or a custom one)
+    const CLOUDINARY_CLOUD_NAME = 'dtbofqko6'; // Replace with your Cloud Name
+    const CLOUDINARY_UPLOAD_PRESET = 'leemont_hostel_uploads'; // Replace with your Upload Preset (e.g., 'ml_default' or a custom one)
 
     // Helper function to handle file uploads to Cloudinary
     async function uploadFileToCloudinary(file, resourceType, statusElementId, hiddenInputId) {
