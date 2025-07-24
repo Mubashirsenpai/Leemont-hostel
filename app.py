@@ -1,54 +1,45 @@
 import json
 import os
-import secrets # For generating session key
-from flask import Flask, request, jsonify, redirect, url_for, render_template, flash, session, current_app, g
+import secrets
+import requests
+import uuid
+from flask import Flask, request, redirect, url_for, render_template, flash, session, g, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
-from werkzeug.security import generate_password_hash, check_password_hash # Import for password hashing
-
-# NEW: Import Cloudinary
-import cloudinary
-import cloudinary.uploader
-import cloudinary.api
+from werkzeug.security import generate_password_hash, check_password_hash
+from datetime import datetime, date
 
 # Initialize Flask app, specifying static and template folders
 app = Flask(__name__, static_folder='static', template_folder='templates')
 
 # --- Configuration ---
-# IMPORTANT: Flask-Login requires 'SECRET_KEY' for session management
 app.config['SECRET_KEY'] = os.environ.get('FLASK_SECRET_KEY', secrets.token_hex(16))
-
-# Use PostgreSQL database URI from environment variable
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///leemonthostel.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-# Initialize SQLAlchemy
 db = SQLAlchemy(app)
+CORS(app)
 
-# NEW: Cloudinary Configuration (Uncommented and using environment variables)
-cloudinary.config(
-    cloud_name = os.environ.get('CLOUDINARY_CLOUD_NAME'),
-    api_key = os.environ.get('CLOUDINARY_API_KEY'),
-    api_secret = os.environ.get('CLOUDINARY_API_SECRET')
-)
-
-CORS(app) # Enable CORS for all routes
-
-# --- Flask-Login Setup ---
 login_manager = LoginManager()
 login_manager.init_app(app)
-login_manager.login_view = 'user_login' # Default redirect for non-logged-in users
+login_manager.login_view = 'user_login'
 
-# User model now includes is_admin flag
+# NEW: Paystack Configuration
+PAYSTACK_PUBLIC_KEY = os.environ.get('PAYSTACK_PUBLIC_KEY', 'pk_test_YOUR_PAYSTACK_PUBLIC_KEY')
+PAYSTACK_SECRET_KEY = os.environ.get('PAYSTACK_SECRET_KEY', 'sk_test_YOUR_PAYSTACK_SECRET_KEY')
+PAYSTACK_VERIFY_URL = "https://api.paystack.co/transaction/verify/"
+PAYSTACK_INITIALIZE_URL = "https://api.paystack.co/transaction/initialize"
+
+# --- SQLAlchemy Models ---
+
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(120), unique=True, nullable=False)
-    password_hash = db.Column(db.String(256), nullable=False) # Increased length for stronger hashes
-    is_admin = db.Column(db.Boolean, default=False) # To distinguish admin users
+    password_hash = db.Column(db.String(256), nullable=False)
+    is_admin = db.Column(db.Boolean, default=False)
 
-    def __repr__(self):
-        return f'<User {self.email}>'
+    bookings = db.relationship('Booking', backref='user', lazy=True)
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -56,63 +47,115 @@ class User(db.Model, UserMixin):
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
 
-    def get_id(self):
-        return str(self.id)
+    def __repr__(self):
+        return f'<User {self.email}>'
 
+class Room(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    capacity = db.Column(db.Integer, nullable=False)
+    price_per_academic_year = db.Column(db.Float, nullable=False)
+    available_rooms = db.Column(db.Integer, default=0)
+    description = db.Column(db.Text, nullable=True)
+    images_json = db.Column(db.Text, default='[]')
+    videos_json = db.Column(db.Text, default='[]')
+    amenities_json = db.Column(db.Text, default='[]')
+    is_deleted = db.Column(db.Boolean, default=False)
+
+    bookings = db.relationship('Booking', backref='room', lazy=True)
+
+    def get_images(self):
+        return json.loads(self.images_json) if self.images_json else []
+
+    def set_images(self, image_list):
+        self.images_json = json.dumps(image_list)
+
+    def get_videos(self):
+        return json.loads(self.videos_json) if self.videos_json else []
+
+    def set_videos(self, video_list):
+        self.videos_json = json.dumps(video_list)
+
+    def get_amenities(self):
+        return json.loads(self.amenities_json) if self.amenities_json else []
+
+    def set_amenities(self, amenity_list):
+        self.amenities_json = json.dumps(amenity_list)
+
+    def __repr__(self):
+        return f'<Room {self.name}>'
+
+class Booking(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    room_id = db.Column(db.Integer, db.ForeignKey('room.id'), nullable=False)
+    check_in_date = db.Column(db.Date, nullable=False)
+    check_out_date = db.Column(db.Date, nullable=False)
+    total_price = db.Column(db.Float, nullable=False)
+    status = db.Column(db.String(50), default='pending_payment')
+    payment_reference = db.Column(db.String(100), unique=True, nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def __repr__(self):
+        return f'<Booking {self.id} by User {self.user_id} for Room {self.room_id}>'
+
+class HostelDetails(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    hostel_name = db.Column(db.String(100), nullable=False, default='Leemont Hostel')
+    general_video_url = db.Column(db.Text, default='')
+    general_images_json = db.Column(db.Text, default='[]')
+    hostel_amenities_json = db.Column(db.Text, default='[]')
+
+    def get_general_images(self):
+        return json.loads(self.general_images_json) if self.general_images_json else []
+
+    def set_general_images(self, image_list):
+        self.general_images_json = json.dumps(image_list)
+
+    def get_hostel_amenities(self):
+        return json.loads(self.hostel_amenities_json) if self.hostel_amenities_json else []
+
+    def set_hostel_amenities(self, amenity_list):
+        self.hostel_amenities_json = json.dumps(amenity_list)
+
+    def __repr__(self):
+        return f'<HostelDetails {self.hostel_name}>'
+
+
+# --- Flask-Login User Loader ---
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
 
-# --- Data Loading and Saving (using JSON file for hostel/room data) ---
-DATA_FILE = os.path.join(app.root_path, 'data', 'rooms.json')
+# --- Database Initialization and Data Seeding ---
+def initialize_database():
+    with app.app_context():
+        db.create_all()
 
-def load_hostel_data():
-    """Loads hostel data from the JSON file. Creates default if not exists."""
-    
-    # Ensure the data directory exists before trying to read/write
-    os.makedirs(os.path.dirname(DATA_FILE), exist_ok=True)
+        admin_email = 'admin@leemonthostel.com'
+        admin_user = User.query.filter_by(email=admin_email, is_admin=True).first()
+        if not admin_user:
+            admin_user = User(email=admin_email, is_admin=True)
+            admin_user.set_password(os.environ.get('ADMIN_PASSWORD', 'adminpass'))
+            db.session.add(admin_user)
+            db.session.commit()
+            print(f"Default admin user '{admin_email}' created.")
+        else:
+            print(f"Default admin user '{admin_email}' already exists.")
+            new_admin_password = os.environ.get('ADMIN_PASSWORD')
+            if new_admin_password and not admin_user.check_password(new_admin_password):
+                admin_user.set_password(new_admin_password)
+                db.session.commit()
+                print(f"Admin user '{admin_email}' password updated from environment variable.")
 
-    if not os.path.exists(DATA_FILE):
-        # Create a default empty structure if file doesn't exist
-        
-        # Define the 15 individual rooms
-        rooms_data = []
-        num_individual_rooms = 15
-        
-        for i in range(1, num_individual_rooms + 1):
-            room_id = f"room_{i}"
-            room_name = f"Room {i}"
-            
-            # Alternate capacity and adjust price
-            if i % 2 != 0: # Odd numbered rooms are single capacity
-                capacity = 1
-                price = 4800.00 + (i * 10)
-                description = f"A comfortable single room (Room {i}) with a private bathroom and study desk, ideal for focused study."
-                amenities = ["WiFi", "Private Toilet", "Single Bed", "Study Desk", "Wardrobe"]
-            else: # Even numbered rooms are double capacity
-                capacity = 2
-                price = 3200.00 + (i * 10)
-                description = f"Spacious double room (Room {i}), perfect for sharing with a roommate, featuring two beds and ample storage."
-                amenities = ["WiFi", "Shared Bathroom", "Two Beds", "Study Desk", "Wardrobe"]
-            
-            rooms_data.append({
-                "id": room_id,
-                "name": room_name,
-                "capacity": capacity,
-                "price_per_academic_year": round(price, 2),
-                "available_rooms": 1, # Each entry now represents one physical room
-                "description": description,
-                "amenities": amenities,
-                "images": [f"https://placehold.co/400x300/6c5ce7/ffffff?text=Room+{i}"], # Generic image for each room
-                "video_url": "",
-                "is_deleted": False # New field: default to not deleted
-            })
-
-        default_data = {
-            "hostel_name": "Leemont Hostel", # Hostel name is Leemont Hostel
-            "general_video_url": "", # Keep empty for now, or add a placeholder
-            "general_images": [ # Added more placeholder images for the slider
-                '/static/images/Leemont Hostel Img.jpg', # Using direct static path
+        hostel_details_entry = HostelDetails.query.first()
+        if not hostel_details_entry:
+            hostel_details_entry = HostelDetails(
+                hostel_name='Leemont Hostel',
+                general_video_url='https://res.cloudinary.com/daxcvn02g/video/upload/v1708688009/hostel_general_video.mp4'
+            )
+            hostel_details_entry.set_general_images([
+                '/static/images/Leemont Hostel Img.jpg',
                 "https://placehold.co/800x600/a29bfe/ffffff?text=Hostel+Lounge+2",
                 "https://placehold.co/800x600/00b894/ffffff?text=Hostel+Room+3",
                 "https://placehold.co/800x600/d63031/ffffff?text=Hostel+Study+4",
@@ -120,56 +163,65 @@ def load_hostel_data():
                 "https://placehold.co/800x600/0984e3/ffffff?text=Hostel+Gym+6",
                 "https://placehold.co/800x600/636e72/ffffff?text=Hostel+Entrance+7",
                 "https://placehold.co/800x600/1a1933/ffffff?text=Hostel+Garden+8"
-            ],
-            "hostel_amenities": ["WiFi", "Laundry", "Private Toilet", "Kitchen", "24/7 Security", "Study Areas", "Gym", "Parking"],
-            "rooms": rooms_data # Assign the generated rooms data
-        }
-        with open(DATA_FILE, 'w') as f:
-            json.dump(default_data, f, indent=2)
-    with open(DATA_FILE, 'r') as f:
-        data = json.load(f)
-        # Ensure 'is_deleted' flag exists for all rooms loaded from existing file
-        for room in data['rooms']:
-            if 'is_deleted' not in room:
-                room['is_deleted'] = False # Add flag for old entries
-        return data
-
-def save_hostel_data(data):
-    """Saves hostel data to the JSON file."""
-    with open(DATA_FILE, 'w') as f:
-        json.dump(data, f, indent=2)
-
-# Load hostel_data immediately within an application context
-hostel_data = {} # Initialize as empty dict for global scope
-with app.app_context():
-    os.makedirs(os.path.dirname(DATA_FILE), exist_ok=True)
-    hostel_data = load_hostel_data()
-    
-    db.create_all()
-    
-    admin_email = 'admin@leemonthostel.com'
-    admin_user = User.query.filter_by(email=admin_email).first()
-
-    if not admin_user:
-        admin_user = User(email=admin_email, is_admin=True)
-        admin_user.set_password(os.environ.get('ADMIN_PASSWORD', 'Agent@2008')) 
-        db.session.add(admin_user)
-        db.session.commit()
-        print(f"Default admin user '{admin_email}' created in PostgreSQL.")
-    else:
-        new_admin_password = os.environ.get('ADMIN_PASSWORD')
-        if new_admin_password and not admin_user.check_password(new_admin_password):
-            admin_user.set_password(new_admin_password)
+            ])
+            hostel_details_entry.set_hostel_amenities([
+                'Free Wi-Fi', '24/7 Security', 'Laundry Service',
+                'Study Rooms', 'Common Area', 'Backup Generator',
+                'On-site Cafeteria', 'Parking', 'Cleaning Service'
+            ])
+            db.session.add(hostel_details_entry)
             db.session.commit()
-            print(f"Admin user '{admin_email}' password updated from environment variable.")
-        print(f"Default admin user '{admin_email}' already exists in PostgreSQL.")
+            print("Default hostel details created.")
+        else:
+            print("Hostel details already exist.")
 
-# Helper function to get only active rooms for public views
-def get_active_rooms():
-    global hostel_data 
-    if hostel_data is None or 'rooms' not in hostel_data:
-        hostel_data = load_hostel_data()
-    return [room for room in hostel_data['rooms'] if not room.get('is_deleted', False)]
+        if not Room.query.first():
+            print("No rooms found, seeding initial room data...")
+            rooms_data = []
+            num_individual_rooms = 15
+            for i in range(1, num_individual_rooms + 1):
+                room_name = f"Room {i}"
+                if i % 2 != 0:
+                    capacity = 1
+                    price = 4800.00 + (i * 10)
+                    description = f"A comfortable single room (Room {i}) with a private bathroom and study desk, ideal for focused study."
+                    amenities = ["WiFi", "Private Toilet", "Single Bed", "Study Desk", "Wardrobe"]
+                else:
+                    capacity = 2
+                    price = 3200.00 + (i * 10)
+                    description = f"Spacious double room (Room {i}), perfect for sharing with a roommate, featuring two beds and ample storage."
+                    amenities = ["WiFi", "Shared Bathroom", "Two Beds", "Study Desk", "Wardrobe"]
+
+                room = Room(
+                    name=room_name,
+                    capacity=capacity,
+                    price_per_academic_year=round(price, 2),
+                    available_rooms=1,
+                    description=description,
+                    is_deleted=False
+                )
+                room.set_images([f"https://placehold.co/400x300/6c5ce7/ffffff?text=Room+{i}"])
+                room.set_videos([])
+                room.set_amenities(amenities)
+                db.session.add(room)
+            db.session.commit()
+            print("Initial room data seeded.")
+        else:
+            print("Rooms already exist in DB, skipping initial room data seeding.")
+
+with app.app_context():
+    initialize_database()
+
+@app.teardown_request
+def teardown_request(exception=None):
+    db.session.remove()
+
+@app.before_request
+def load_hostel_details_for_request():
+    g.hostel = HostelDetails.query.first()
+    if not g.hostel:
+        initialize_database()
+        g.hostel = HostelDetails.query.first()
 
 
 # --- Routes for Public Pages ---
@@ -178,76 +230,215 @@ def get_active_rooms():
 @app.route('/home')
 def home():
     """Renders the home page with general hostel info and some room highlights."""
-    active_rooms = get_active_rooms()
-    featured_rooms = active_rooms[:3] 
-    return render_template('home.html', hostel=hostel_data, featured_rooms=featured_rooms)
+    # flash('This is a test flash message!', 'info') # Removed temporary flash message
+    active_rooms = Room.query.filter_by(is_deleted=False).order_by(Room.id.asc()).limit(3).all()
+    return render_template('home.html', hostel=g.hostel, featured_rooms=active_rooms)
 
 @app.route('/gallery')
 def gallery():
     """Renders the gallery page showing all hostel images and videos."""
-    return render_template('gallery.html', hostel=hostel_data) 
+    rooms = Room.query.filter_by(is_deleted=False).order_by(Room.id.asc()).all()
+    return render_template('gallery.html', hostel=g.hostel, rooms=rooms)
 
 @app.route('/rooms')
 def rooms():
     """Renders the rooms page displaying all available rooms with details."""
-    active_rooms = get_active_rooms()
-    return render_template('rooms.html', rooms=active_rooms, hostel=hostel_data)
+    active_rooms = Room.query.filter_by(is_deleted=False).order_by(Room.id.asc()).all()
+    return render_template('rooms.html', rooms=active_rooms, hostel=g.hostel)
 
-@app.route('/room/<room_id>')
+@app.route('/room/<int:room_id>')
 def room_detail(room_id):
     """Renders a detailed page for a specific room."""
-    room = next((r for r in get_active_rooms() if r['id'] == room_id), None)
-    if room is None:
-        flash('Room not found or is currently unavailable!', 'error')
+    room = Room.query.get_or_404(room_id)
+    if room.is_deleted and not (current_user.is_authenticated and current_user.is_admin):
+        flash('This room is not available.', 'error')
         return redirect(url_for('rooms'))
-    return render_template('room_detail.html', room=room, hostel=hostel_data)
+    return render_template('room_detail.html', room=room, hostel=g.hostel)
 
 
-@app.route('/book/<room_id>', methods=['GET', 'POST'])
-@login_required 
-def book(room_id):
-    """Handles room booking requests."""
+@app.route('/book/<int:room_id>', methods=['GET', 'POST'])
+@login_required
+def book_room(room_id):
+    """Handles room booking requests and initiates Paystack payment."""
     if current_user.is_authenticated and current_user.is_admin:
         flash('Admin users cannot make bookings. Please log in as a regular user.', 'error')
-        return redirect(url_for('home')) 
+        return redirect(url_for('home'))
 
-    room = next((r for r in get_active_rooms() if r['id'] == room_id), None)
-    if room is None:
-        flash('Room not found or is currently unavailable for booking!', 'error')
+    room = Room.query.get_or_404(room_id)
+    if room.is_deleted:
+        flash('This room is not available for booking.', 'error')
         return redirect(url_for('rooms'))
 
     if request.method == 'POST':
-        num_students = int(request.form.get('num_students'))
+        check_in_str = request.form.get('check_in_date')
+        check_out_str = request.form.get('check_out_date')
         payment_method = request.form.get('payment_method')
-        duration = request.form.get('duration') 
 
-        if num_students > room['capacity']:
-            flash(f'This is a {room["capacity"]}-person room. You selected {num_students} students.', 'error')
-            return render_template('book.html', room=room, hostel=hostel_data)
+        if not check_in_str or not check_out_str or not payment_method:
+            flash('All booking fields are required.', 'error')
+            return render_template('book.html', room=room, hostel=g.hostel)
 
-        if room['available_rooms'] <= 0:
-            flash('Sorry, this room is currently booked.', 'error') 
-            return render_template('book.html', room=room, hostel=hostel_data)
+        try:
+            check_in = datetime.strptime(check_in_str, '%Y-%m-%d').date()
+            check_out = datetime.strptime(check_out_str, '%Y-%m-%d').date()
+        except ValueError:
+            flash('Invalid date format. Please use YYYY-MM-DD.', 'error')
+            return render_template('book.html', room=room, hostel=g.hostel)
 
-        # --- Simulate Payment Process ---
-        room['available_rooms'] -= 1 
-        save_hostel_data(hostel_data) 
+        if check_in >= check_out:
+            flash('Check-out date must be after check-in date.', 'error')
+            return render_template('book.html', room=room, hostel=g.hostel)
 
-        flash(f'Booking for {room["name"]} successful! Payment via {payment_method} simulated. We will contact you shortly.', 'success')
-        return redirect(url_for('rooms')) 
+        if check_in < date.today():
+            flash('Check-in date cannot be in the past.', 'error')
+            return render_template('book.html', room=room, hostel=g.hostel)
 
-    return render_template('book.html', room=room, hostel=hostel_data)
+        if room.available_rooms <= 0:
+            flash('Sorry, this room is currently fully booked.', 'error')
+            return render_template('book.html', room=room, hostel=g.hostel)
 
-# --- Routes for Regular User Authentication ---
+        total_price = room.price_per_academic_year
+
+        payment_reference = str(uuid.uuid4())
+
+        new_booking = Booking(
+            user_id=current_user.id,
+            room_id=room.id,
+            check_in_date=check_in,
+            check_out_date=check_out,
+            total_price=total_price,
+            status='pending_payment',
+            payment_reference=payment_reference
+        )
+        db.session.add(new_booking)
+        db.session.commit()
+
+        amount_pesewas = int(total_price * 100)
+
+        headers = {
+            "Authorization": f"Bearer {PAYSTACK_SECRET_KEY}",
+            "Content-Type": "application/json"
+        }
+        payload = {
+            "email": current_user.email,
+            "amount": amount_pesewas,
+            "reference": payment_reference,
+            "callback_url": url_for('paystack_payment_callback', _external=True),
+            "metadata": {
+                "booking_id": new_booking.id,
+                "room_id": room.id,
+                "user_id": current_user.id
+            }
+        }
+
+        try:
+            response = requests.post(PAYSTACK_INITIALIZE_URL, headers=headers, json=payload)
+            response.raise_for_status()
+            paystack_data = response.json()
+
+            if paystack_data['status'] and paystack_data['data']['authorization_url']:
+                return jsonify({
+                    'status': 'success',
+                    'authorization_url': paystack_data['data']['authorization_url'],
+                    'access_code': paystack_data['data']['access_code'],
+                    'reference': payment_reference
+                })
+            else:
+                db.session.rollback()
+                flash('Payment initialization failed. Please try again.', 'error')
+                return jsonify({'status': 'error', 'message': 'Payment initialization failed.'}), 500
+
+        except requests.exceptions.RequestException as e:
+            db.session.rollback()
+            print(f"Paystack API error: {e}")
+            flash('Could not connect to payment gateway. Please try again later.', 'error')
+            return jsonify({'status': 'error', 'message': f'Payment gateway error: {e}'}), 500
+        except Exception as e:
+            db.session.rollback()
+            print(f"An unexpected error occurred: {e}")
+            flash('An unexpected error occurred during payment. Please try again.', 'error')
+            return jsonify({'status': 'error', 'message': f'An unexpected error occurred: {e}'}), 500
+
+    return render_template('book.html', room=room, hostel=g.hostel, paystack_public_key=PAYSTACK_PUBLIC_KEY)
+
+
+@app.route('/paystack/callback')
+def paystack_payment_callback():
+    """Handles the redirect from Paystack after a payment attempt."""
+    reference = request.args.get('trxref') or request.args.get('reference')
+
+    if not reference:
+        flash('Payment reference not found. Payment could not be verified.', 'error')
+        return redirect(url_for('payment_failure'))
+
+    headers = {
+        "Authorization": f"Bearer {PAYSTACK_SECRET_KEY}"
+    }
+
+    try:
+        response = requests.get(f"{PAYSTACK_VERIFY_URL}{reference}", headers=headers)
+        response.raise_for_status()
+        paystack_data = response.json()
+
+        if paystack_data['status'] and paystack_data['data']['status'] == 'success':
+            booking = Booking.query.filter_by(payment_reference=reference).first()
+
+            if booking:
+                if booking.status == 'pending_payment':
+                    booking.status = 'approved'
+                    room = Room.query.get(booking.room_id)
+                    if room and room.available_rooms > 0:
+                        room.available_rooms -= 1
+                    db.session.commit()
+                    flash('Your booking has been successfully approved and confirmed!', 'success')
+                    return redirect(url_for('payment_success', booking_id=booking.id))
+                else:
+                    flash('Payment already processed for this booking.', 'info')
+                    return redirect(url_for('payment_success', booking_id=booking.id))
+            else:
+                flash('Payment successful, but associated booking not found. Please contact support.', 'warning')
+                return redirect(url_for('payment_failure'))
+        else:
+            booking = Booking.query.filter_by(payment_reference=reference).first()
+            if booking:
+                booking.status = 'failed'
+                db.session.commit()
+            flash('Your payment was not successful. Please try again.', 'error')
+            return redirect(url_for('payment_failure'))
+
+    except requests.exceptions.RequestException as e:
+        print(f"Paystack verification API error: {e}")
+        flash('Payment verification failed due to a network error. Please contact support.', 'error')
+        return redirect(url_for('payment_failure'))
+    except Exception as e:
+        print(f"An unexpected error occurred during payment verification: {e}")
+        flash('An unexpected error occurred during payment verification. Please contact support.', 'error')
+        return redirect(url_for('payment_failure'))
+
+
+@app.route('/payment/success')
+def payment_success():
+    booking_id = request.args.get('booking_id')
+    booking = None
+    if booking_id:
+        booking = Booking.query.get(booking_id)
+    return render_template('payment_success.html', hostel=g.hostel, booking=booking)
+
+@app.route('/payment/failure')
+def payment_failure():
+    return render_template('payment_failure.html', hostel=g.hostel)
+
+
+# --- Routes for User Authentication ---
 
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
     """Handles user registration."""
     if current_user.is_authenticated:
         flash('You are already logged in.', 'info')
-        if current_user.is_admin: 
+        if current_user.is_admin:
             return redirect(url_for('admin_dashboard'))
-        return redirect(url_for('home')) 
+        return redirect(url_for('home'))
 
     if request.method == 'POST':
         email = request.form.get('email')
@@ -256,35 +447,40 @@ def signup():
 
         if not email or not password or not confirm_password:
             flash('All fields are required.', 'error')
-            return render_template('signup.html', hostel=hostel_data)
+            return render_template('signup.html', hostel=g.hostel)
 
         if password != confirm_password:
             flash('Passwords do not match.', 'error')
-            return render_template('signup.html', hostel=hostel_data)
+            return render_template('signup.html', hostel=g.hostel)
 
         if User.query.filter_by(email=email).first():
             flash('Email already registered. Please login or use a different email.', 'error')
-            return render_template('signup.html', hostel=hostel_data)
+            return render_template('signup.html', hostel=g.hostel)
 
-        new_user = User(email=email)
+        new_user = User(email=email, is_admin=False)
         new_user.set_password(password)
-        
-        db.session.add(new_user)
-        db.session.commit()
-        
-        flash('Account created successfully! Please log in.', 'success')
-        return redirect(url_for('user_login')) 
 
-    return render_template('signup.html', hostel=hostel_data)
+        try:
+            db.session.add(new_user)
+            db.session.commit()
+            flash('Account created successfully! Please log in.', 'success')
+            return redirect(url_for('user_login'))
+        except Exception as e:
+            db.session.rollback()
+            print(f"Database error during signup: {e}")
+            flash('An error occurred during signup. Please try again.', 'error')
+            return render_template('signup.html', hostel=g.hostel)
+
+    return render_template('signup.html', hostel=g.hostel)
 
 @app.route('/login', methods=['GET', 'POST'])
 def user_login():
     """Handles regular user login."""
     if current_user.is_authenticated:
         flash('You are already logged in.', 'info')
-        if current_user.is_admin: 
+        if current_user.is_admin:
             return redirect(url_for('admin_dashboard'))
-        return redirect(url_for('home')) 
+        return redirect(url_for('home'))
 
     if request.method == 'POST':
         email = request.form.get('email')
@@ -296,11 +492,11 @@ def user_login():
             login_user(user)
             flash('Logged in successfully!', 'success')
             next_page = request.args.get('next')
-            return redirect(next_page or url_for('home')) 
+            return redirect(next_page or url_for('home'))
         else:
             flash('Invalid email or password.', 'error')
 
-    return render_template('login.html', hostel=hostel_data)
+    return render_template('login.html', hostel=g.hostel)
 
 @app.route('/logout')
 @login_required
@@ -308,7 +504,7 @@ def logout():
     """Handles logging out both regular users and admin users."""
     logout_user()
     flash('You have been logged out.', 'info')
-    return redirect(url_for('home')) 
+    return redirect(url_for('home'))
 
 # --- Routes for Admin Pages ---
 
@@ -316,13 +512,13 @@ def logout():
 def admin_login():
     """Handles admin login."""
     if current_user.is_authenticated:
-        if current_user.is_admin: 
+        if current_user.is_admin:
             return redirect(url_for('admin_dashboard'))
         flash('Please log out of your regular account to log in as admin.', 'info')
         return redirect(url_for('home'))
 
     if request.method == 'POST':
-        email = request.form.get('username') 
+        email = request.form.get('username')
         password = request.form.get('password')
 
         admin_user = User.query.filter_by(email=email, is_admin=True).first()
@@ -332,8 +528,8 @@ def admin_login():
             flash('Admin logged in successfully!', 'success')
             return redirect(url_for('admin_dashboard'))
         else:
-            flash('Invalid admin email or password.', 'error') 
-    return render_template('admin_login.html', hostel=hostel_data)
+            flash('Invalid admin email or password.', 'error')
+    return render_template('admin_login.html', hostel=g.hostel)
 
 
 @app.route('/admin/dashboard')
@@ -344,10 +540,11 @@ def admin_dashboard():
         flash('Access denied. Admin privileges required.', 'error')
         return redirect(url_for('home'))
 
-    total_active_rooms = sum(room['available_rooms'] for room in get_active_rooms())
-    return render_template('admin_dashboard.html', hostel=hostel_data, rooms=hostel_data['rooms'], total_available=total_active_rooms)
+    rooms = Room.query.order_by(Room.id.asc()).all()
+    total_active_rooms = Room.query.filter_by(is_deleted=False).count()
+    return render_template('admin_dashboard.html', hostel=g.hostel, rooms=rooms, total_available=total_active_rooms)
 
-@app.route('/admin/edit_room/<room_id>', methods=['GET', 'POST'])
+@app.route('/admin/edit_room/<int:room_id>', methods=['GET', 'POST'])
 @login_required
 def edit_room(room_id):
     """Handles editing details for a specific room."""
@@ -355,28 +552,36 @@ def edit_room(room_id):
         flash('Access denied. Admin privileges required.', 'error')
         return redirect(url_for('home'))
 
-    room = next((r for r in hostel_data['rooms'] if r['id'] == room_id), None)
-    if room is None:
-        flash('Room not found!', 'error')
-        return redirect(url_for('admin_dashboard'))
+    room = Room.query.get_or_404(room_id)
 
     if request.method == 'POST':
-        room['name'] = request.form.get('name')
-        room['capacity'] = int(request.form.get('capacity'))
-        room['price_per_academic_year'] = float(request.form.get('price_per_academic_year'))
-        room['available_rooms'] = int(request.form.get('available_rooms'))
-        room['description'] = request.form.get('description')
-        room['amenities'] = [a.strip() for a in request.form.get('amenities').split(',') if a.strip()]
+        room.name = request.form.get('name')
+        room.capacity = int(request.form.get('capacity'))
+        room.price_per_academic_year = float(request.form.get('price_per_academic_year'))
+        room.available_rooms = int(request.form.get('available_rooms'))
+        room.description = request.form.get('description')
 
-        # MODIFIED: These will now come from hidden inputs populated by JS upload
-        room['images'] = [img.strip() for img in request.form.get('images').split('\n') if img.strip()]
-        room['video_url'] = request.form.get('video_url').strip()
+        images_str = request.form.get('images', '')
+        if images_str == '':
+            room.set_images([])
+        else:
+            image_urls = [url.strip() for url in images_str.split('\n') if url.strip()]
+            room.set_images(image_urls)
 
-        save_hostel_data(hostel_data)
-        flash('Room updated successfully!', 'success')
+        video_url_str = request.form.get('video_url', '')
+        if video_url_str == '':
+            room.set_videos([])
+        else:
+            room.set_videos([video_url_str])
+
+        amenities_str = request.form.get('amenities', '')
+        room.set_amenities([a.strip() for a in amenities_str.split(',') if a.strip()])
+
+        db.session.commit()
+        flash(f'Room {room.name} updated successfully!', 'success')
         return redirect(url_for('admin_dashboard'))
 
-    return render_template('edit_room.html', room=room, hostel=hostel_data)
+    return render_template('edit_room.html', room=room, hostel=g.hostel)
 
 @app.route('/admin/add_room', methods=['GET', 'POST'])
 @login_required
@@ -387,31 +592,46 @@ def add_room():
         return redirect(url_for('home'))
 
     if request.method == 'POST':
-        new_room_id = 'room_' + secrets.token_hex(4)
-        
-        current_room_numbers = [int(r['name'].replace('Room ', '')) for r in hostel_data['rooms'] if r['name'].startswith('Room ')]
-        next_room_number = max(current_room_numbers) + 1 if current_room_numbers else 1
+        name = request.form.get('name')
+        capacity = int(request.form.get('capacity'))
+        price_per_academic_year = float(request.form.get('price_per_academic_year'))
+        available_rooms = int(request.form.get('available_rooms'))
+        description = request.form.get('description')
 
-        new_room = {
-            "id": new_room_id,
-            "name": f"Room {next_room_number}",
-            "capacity": int(request.form.get('capacity')),
-            "price_per_academic_year": float(request.form.get('price_per_academic_year')),
-            "available_rooms": int(request.form.get('available_rooms')),
-            "description": request.form.get('description'),
-            "amenities": [a.strip() for a in request.form.get('amenities').split(',') if a.strip()],
-            # MODIFIED: These will now come from hidden inputs populated by JS upload
-            "images": [img.strip() for img in request.form.get('images').split('\n') if img.strip()],
-            "video_url": request.form.get('video_url').strip(),
-            "is_deleted": False
-        }
-        hostel_data['rooms'].append(new_room)
-        save_hostel_data(hostel_data)
-        flash('New room added successfully!', 'success')
+        images_str = request.form.get('images', '')
+        if images_str == '':
+            images_list = []
+        else:
+            images_list = [url.strip() for url in images_str.split('\n') if url.strip()]
+
+        video_url_str = request.form.get('video_url', '')
+        if video_url_str == '':
+            videos_list = []
+        else:
+            videos_list = [video_url_str]
+
+        amenities_str = request.form.get('amenities', '')
+        amenities_list = [a.strip() for a in amenities_str.split(',') if a.strip()]
+
+        new_room = Room(
+            name=name,
+            capacity=capacity,
+            price_per_academic_year=price_per_academic_year,
+            available_rooms=available_rooms,
+            description=description,
+            is_deleted=False
+        )
+        new_room.set_images(images_list)
+        new_room.set_videos(videos_list)
+        new_room.set_amenities(amenities_list)
+
+        db.session.add(new_room)
+        db.session.commit()
+        flash(f'New room "{name}" added successfully!', 'success')
         return redirect(url_for('admin_dashboard'))
-    return render_template('add_room.html', hostel=hostel_data)
+    return render_template('add_room.html', hostel=g.hostel)
 
-@app.route('/admin/delete_room/<room_id>', methods=['POST'])
+@app.route('/admin/delete_room/<int:room_id>', methods=['POST'])
 @login_required
 def delete_room(room_id):
     """Handles soft-deleting a room."""
@@ -419,21 +639,13 @@ def delete_room(room_id):
         flash('Access denied. Admin privileges required.', 'error')
         return redirect(url_for('home'))
 
-    global hostel_data
-    room_found = False
-    for room in hostel_data['rooms']:
-        if room['id'] == room_id:
-            room['is_deleted'] = True
-            room_found = True
-            break
-    if room_found:
-        save_hostel_data(hostel_data)
-        flash(f'Room {room_id} marked as deleted successfully!', 'success')
-    else:
-        flash('Room not found.', 'error')
+    room = Room.query.get_or_404(room_id)
+    room.is_deleted = True
+    db.session.commit()
+    flash(f'Room "{room.name}" marked as deleted.', 'success')
     return redirect(url_for('admin_dashboard'))
 
-@app.route('/admin/restore_room/<room_id>', methods=['POST'])
+@app.route('/admin/restore_room/<int:room_id>', methods=['POST'])
 @login_required
 def restore_room(room_id):
     """Handles restoring a soft-deleted room."""
@@ -441,18 +653,10 @@ def restore_room(room_id):
         flash('Access denied. Admin privileges required.', 'error')
         return redirect(url_for('home'))
 
-    global hostel_data
-    room_found = False
-    for room in hostel_data['rooms']:
-        if room['id'] == room_id:
-            room['is_deleted'] = False
-            room_found = True
-            break
-    if room_found:
-        save_hostel_data(hostel_data)
-        flash(f'Room {room_id} restored successfully!', 'success')
-    else:
-        flash('Room not found.', 'error')
+    room = Room.query.get_or_404(room_id)
+    room.is_deleted = False
+    db.session.commit()
+    flash(f'Room "{room.name}" restored successfully!', 'success')
     return redirect(url_for('admin_dashboard'))
 
 
@@ -464,17 +668,40 @@ def edit_hostel_details():
         flash('Access denied. Admin privileges required.', 'error')
         return redirect(url_for('home'))
 
+    hostel_details_entry = g.hostel
+
     if request.method == 'POST':
-        hostel_data['hostel_name'] = request.form.get('hostel_name')
-        hostel_data['general_video_url'] = request.form.get('general_video_url').strip()
-        hostel_data['general_images'] = [img.strip() for img in request.form.get('general_images').split('\n') if img.strip()]
-        hostel_data['hostel_amenities'] = [a.strip() for a in request.form.get('hostel_amenities').split(',') if a.strip()]
-        
-        save_hostel_data(hostel_data)
+        hostel_details_entry.hostel_name = request.form.get('hostel_name')
+
+        general_video_url_str = request.form.get('general_video_url', '')
+        hostel_details_entry.general_video_url = general_video_url_str
+
+        general_images_str = request.form.get('general_images', '')
+        hostel_details_entry.set_general_images([img.strip() for img in general_images_str.split('\n') if img.strip()])
+
+        hostel_amenities_str = request.form.get('hostel_amenities', '')
+        hostel_details_entry.set_hostel_amenities([a.strip() for a in hostel_amenities_str.split(',') if a.strip()])
+
+        db.session.commit()
         flash('Hostel details updated successfully!', 'success')
         return redirect(url_for('admin_dashboard'))
-    return render_template('edit_hostel_details.html', hostel=hostel_data)
+
+    return render_template('edit_hostel_details.html', hostel=hostel_details_entry)
+
+# NEW: Route for My Bookings
+@app.route('/my_bookings')
+@login_required
+def my_bookings():
+    """Displays a list of bookings for the currently logged-in user."""
+    # Ensure only regular users can view their bookings, not admins
+    if current_user.is_admin:
+        flash('Admin users do not have personal bookings.', 'info')
+        return redirect(url_for('admin_dashboard'))
+
+    # Fetch bookings for the current user, ordered by creation date descending
+    user_bookings = Booking.query.filter_by(user_id=current_user.id).order_by(Booking.created_at.desc()).all()
+    return render_template('my_bookings.html', hostel=g.hostel, bookings=user_bookings)
 
 
 if __name__ == '__main__':
-    app.run(debug=False)
+    app.run(debug=True)

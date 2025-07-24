@@ -1,0 +1,94 @@
+{% extends "index.html" %}
+
+{% block title %}My Bookings - {{ hostel.hostel_name }}{% endblock %}
+
+{% block content %}
+<section class="my-bookings-section py-8">
+    <div class="container">
+        <h1 class="section-title text-center text-4xl font-bold">My Bookings</h1>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flash-messages mb-6">
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}">{{ message }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        {% if bookings %}
+            <div class="booking-management-table bg-white shadow-md rounded-lg overflow-hidden">
+                <table class="min-w-full leading-normal">
+                    <thead>
+                        <tr>
+                            <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                Booking ID
+                            </th>
+                            <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                Room Name
+                            </th>
+                            <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                Check-in Date
+                            </th>
+                            <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                Check-out Date
+                            </th>
+                            <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                Total Price (GHC)
+                            </th>
+                            <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                Status
+                            </th>
+                            <th class="px-5 py-3 border-b-2 border-gray-200 bg-gray-100 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                Booked On
+                            </th>
+                            {# Add more columns if needed, e.g., Actions for cancellation #}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for booking in bookings %}
+                        <tr class="text-gray-700">
+                            <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm" data-label="Booking ID">
+                                #{{ booking.id }}
+                            </td>
+                            <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm" data-label="Room Name">
+                                {{ booking.room_name }}
+                            </td>
+                            <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm" data-label="Check-in Date">
+                                {{ booking.check_in_date.strftime('%Y-%m-%d') }}
+                            </td>
+                            <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm" data-label="Check-out Date">
+                                {{ booking.check_out_date.strftime('%Y-%m-%d') }}
+                            </td>
+                            <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm" data-label="Total Price">
+                                {{ "%.2f"|format(booking.total_price) }}
+                            </td>
+                            <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm" data-label="Status">
+                                {% if booking.status == 'pending' %}
+                                    <span class="text-yellow-600">{{ booking.status|capitalize }}</span>
+                                {% elif booking.status == 'approved' %}
+                                    <span class="text-green-600">{{ booking.status|capitalize }}</span>
+                                {% elif booking.status == 'rejected' %}
+                                    <span class="text-red-600">{{ booking.status|capitalize }}</span>
+                                {% else %}
+                                    <span>{{ booking.status|capitalize }}</span>
+                                {% endif %}
+                            </td>
+                            <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm" data-label="Booked On">
+                                {{ booking.created_at.strftime('%Y-%m-%d %H:%M') }}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-center py-10 bg-gray-800 rounded-lg shadow-md">
+                <p class="text-xl text-light-color mb-4">You haven't made any bookings yet.</p>
+                <a href="{{ url_for('rooms') }}" class="btn primary">Browse Rooms</a>
+            </div>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

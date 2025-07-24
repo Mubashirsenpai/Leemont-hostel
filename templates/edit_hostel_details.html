@@ -20,14 +20,14 @@
                     <div id="general_video_upload_status" class="upload-status"></div> {# For upload messages #}
                     <p class="note">Current Video:</p>
                     <div class="current-media-preview">
-                        {% if hostel.general_video_url %}
+                        {% if hostel.general_video_url %} {# Access video URL directly #}
                             <video controls src="{{ hostel.general_video_url }}" class="current-video-thumbnail"></video>
                         {% else %}
-                            <p>No current general video.</p>
+                            <p>No current video.</p>
                         {% endif %}
                     </div>
                     {# Hidden input to store Cloudinary URL #}
-                    <input type="hidden" id="general_video_cloudinary_url" name="general_video_url" value="{{ hostel.general_video_url }}">
+                    <input type="hidden" id="general_video_cloudinary_url" name="general_video_url" value="{{ hostel.general_video_url }}"> {# Access video URL directly #}
                 </div>
 
                 {# NEW: File input for general images #}
@@ -37,17 +37,17 @@
                     <div id="general_image_upload_status" class="upload-status"></div> {# For upload messages #}
                     <p class="note">Current Images: (Upload new images to replace existing ones)</p>
                     <div class="current-media-preview">
-                        {% for image in hostel.general_images %}
+                        {% for image in hostel.get_general_images() %} {# Access images via helper method #}
                             <img src="{{ image }}" alt="Current Hostel Image" class="current-image-thumbnail">
                         {% endfor %}
                     </div>
                     {# Hidden input to store Cloudinary URLs #}
-                    <input type="hidden" id="general_images_cloudinary_urls" name="general_images" value="{{ hostel.general_images | join('\n') }}">
+                    <input type="hidden" id="general_images_cloudinary_urls" name="general_images" value="{{ hostel.get_general_images() | join('\n') }}"> {# Access images via helper method #}
                 </div>
 
                 <div class="form-group">
                     <label for="hostel_amenities">Hostel Amenities (comma-separated):</label>
-                    <textarea id="hostel_amenities" name="hostel_amenities" rows="5">{{ hostel.hostel_amenities | join(', ') }}</textarea>
+                    <textarea id="hostel_amenities" name="hostel_amenities" rows="5">{{ hostel.get_hostel_amenities() | join(', ') }}</textarea> {# Access amenities via helper method #}
                 </div>
                 <button type="submit" class="btn primary" id="editHostelDetailsSubmitBtn">Update Hostel Details</button> {# ADDED ID #}
                 <a href="{{ url_for('admin_dashboard') }}" class="btn secondary">Cancel</a>

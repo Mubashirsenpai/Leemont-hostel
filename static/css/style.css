@@ -116,7 +116,7 @@ img {
 }
 
 .btn.btn-danger {
-    background-color: var(--danger);
+    background-color: var(--danger); /* Removed !important here */
     color: var(--white);
 }
 .btn.btn-danger:hover {
@@ -163,7 +163,7 @@ img {
     top: 90px; /* Below header */
     left: 50%;
     transform: translateX(-50%);
-    z-index: 1001;
+    z-index: 1001; /* Ensure it's above other content */
     width: 90%;
     max-width: 500px;
     text-align: center;
@@ -511,7 +511,7 @@ header .container {
     padding-top: 56.25%; /* 16:9 Aspect Ratio */
     position: relative;
     background-color: var(--card-background);
-    border-radius: 15px;
+    border-radius: 10px; /* Changed from 15px to 10px for consistency with room cards */
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -872,6 +872,7 @@ header .container {
 .form-group input[type="password"],
 .form-group input[type="number"],
 .form-group input[type="url"],
+.form-group input[type="date"], /* Added for date inputs */
 .form-group textarea,
 .form-group select {
     width: 100%;
@@ -962,27 +963,55 @@ header .container {
 
 /* Admin Dashboard Section */
 .admin-dashboard-section {
-    /* MODIFIED: Increased padding-top for desktop */
-    padding-top: 140px; /* Adjusted to give more space from fixed header */
+    padding-top: 120px; /* Adjusted padding-top for better clearance */
     background-color: var(--background-light);
     min-height: 100vh;
 }
 
+/* Specific margin for the section title within admin pages */
+.admin-dashboard-section .section-title,
+.edit-room-section .section-title,
+.add-room-section .section-title,
+.edit-hostel-details-section .section-title {
+    margin-top: 50px; /* Standard margin-top for section titles */
+    margin-bottom: 50px; /* Keep standard section title margin-bottom */
+}
+
+/* NEW: Specific styling for my-bookings-section title to ensure it clears the header */
+.my-bookings-section {
+    padding-top: 120px; /* Ensure content starts below the fixed header */
+    background-color: var(--background-dark); /* Consistent background */
+    min-height: 100vh;
+}
+
+.my-bookings-section .section-title {
+    margin-top: 0; /* Override default margin-top to prevent overlap with padding-top */
+    margin-bottom: 50px; /* Keep standard spacing below the title */
+}
+
+
 .admin-actions {
     display: flex;
-    /* MODIFIED: Add gap for spacing between buttons */
-    gap: 15px; /* Adjust as needed */
+    gap: 15px; /* Adjust as needed for desktop horizontal spacing */
     margin-bottom: 40px;
     flex-wrap: wrap;
     justify-content: center; /* Center buttons on smaller screens */
 }
-/* NEW: Ensure buttons within admin-actions have proper styling */
+/* Ensure buttons within admin-actions have proper styling globally */
 .admin-actions .btn {
-    /* Ensure they use the default btn padding and size, not btn-small */
     padding: 12px 24px; /* Standard button padding */
     font-size: 1rem; /* Standard button font size */
     width: auto; /* Allow width to be determined by content + padding */
     height: auto; /* Allow height to be determined by content + padding */
+}
+
+/* Explicitly target the danger button within admin-actions for desktop and mobile */
+.admin-actions .btn.danger {
+    background-color: var(--danger); /* Ensure red color */
+    color: var(--white);
+}
+.admin-actions .btn.danger:hover {
+    background-color: #a72324; /* Darker red on hover */
 }
 
 
@@ -1003,7 +1032,8 @@ header .container {
     color: var(--primary-color);
 }
 
-.room-management-table {
+/* Re-using table styles for My Bookings page */
+.room-management-table, .booking-management-table {
     overflow-x: auto; /* Allows horizontal scroll on small screens */
     background-color: var(--card-background);
     border-radius: 15px;
@@ -1011,21 +1041,24 @@ header .container {
     padding: 20px;
 }
 
-.room-management-table table {
+.room-management-table table, .booking-management-table table {
     width: 100%;
     border-collapse: collapse;
     min-width: 600px; /* Ensure table doesn't collapse too much */
 }
 
 .room-management-table th,
-.room-management-table td {
+.room-management-table td,
+.booking-management-table th,
+.booking-management-table td {
     padding: 15px;
     text-align: left;
     border-bottom: 1px solid var(--border-color);
 }
 
-.room-management-table th {
-    background-color: var(--primary-color); /* Changed to #f39c12 */
+.room-management-table th,
+.booking-management-table th {
+    background-color: var(--primary-color);
     color: var(--white);
     font-weight: 600;
 }
@@ -1035,28 +1068,17 @@ header .container {
     gap: 10px; /* Small space between buttons */
 }
 
-.room-management-table tr:last-child td {
+.room-management-table tr:last-child td,
+.booking-management-table tr:last-child td {
     border-bottom: none;
 }
 
-/* Removed old specific button styles as they are now handled by .btn.btn-info, etc. */
-/*
-.room-management-table .edit-btn {
-    background-color: var(--info);
-    margin-right: 10px;
-}
-
-.room-management-table .delete-btn {
-    background-color: var(--danger);
-}
-*/
 
 /* Edit/Add Room Section */
 .edit-room-section,
 .add-room-section,
 .edit-hostel-details-section {
-    /* MODIFIED: Increased padding-top for desktop */
-    padding-top: 140px; /* Adjusted to give more space from fixed header */
+    padding-top: 120px; /* Adjusted padding-top for better clearance */
     background-color: var(--background-dark);
     min-height: 100vh;
     display: flex; /* Use flex to center content */
@@ -1218,7 +1240,7 @@ footer {
     opacity: 0;
     visibility: hidden;
     transition: all 0.3s ease;
-    z-index: 999;
+    z-index: 999; /* Ensure it's above other content */
 }
 
 .back-to-top.active {
@@ -1426,27 +1448,36 @@ footer {
 
     /* NEW: Admin Dashboard Mobile Adjustments */
     .admin-dashboard-section {
-        /* MODIFIED: Increased padding-top for mobile */
         padding-top: 120px; /* Adjusted to ensure content clears fixed header */
     }
 
     .admin-actions {
+        width: 100%; /* Ensure it takes full width for centering */
         flex-direction: column; /* Stack action buttons vertically */
-        align-items: center; /* Center them */
-        gap: 15px; /* Add vertical space between stacked buttons */
+        align-items: center; /* Center them horizontally within the container */
+        justify-content: center; /* NEW: Center them vertically (along the column axis) to group them */
+        gap: 15px; /* This gap will now correctly apply between the stacked items */
         margin-bottom: 30px; /* Adjust margin */
     }
     .admin-actions .btn {
         width: 90%; /* Make admin action buttons wider on mobile */
         margin: 0 auto; /* Center them */
     }
+    /* Explicitly target the danger button within admin-actions for desktop and mobile */
+    .admin-actions .btn.danger {
+        background-color: var(--danger); /* Ensure red color */
+        color: var(--white);
+    }
+    .admin-actions .btn.danger:hover {
+        background-color: #a72324; /* Darker red on hover */
+    }
+
     .admin-dashboard-section h1,
-    .admin-dashboard-section h2 {
+    .admin-dashboard-section h2,
+    .my-bookings-section h1 { /* Added for my_bookings */
         padding-left: 15px; /* Add some horizontal padding to titles */
         padding-right: 15px;
         text-align: center; /* Center titles */
-    }
-    .admin-dashboard-section h1 {
         margin-top: 20px; /* Ensure space below navbar */
         margin-bottom: 20px;
     }
@@ -1456,7 +1487,8 @@ footer {
     }
 
 
-    .room-management-table table {
+    .room-management-table table,
+    .booking-management-table table { /* Added for my_bookings */
         min-width: auto; /* Allow table to shrink */
     }
     /* Make table cells stack for better readability on small screens */
@@ -1465,28 +1497,38 @@ footer {
     .room-management-table tbody,
     .room-management-table th,
     .room-management-table td,
-    .room-management-table tr {
+    .room-management-table tr,
+    .booking-management-table table, /* Added for my_bookings */
+    .booking-management-table thead,
+    .booking-management-table tbody,
+    .booking-management-table th,
+    .booking-management-table td,
+    .booking-management-table tr {
         display: block;
     }
-    .room-management-table thead tr {
+    .room-management-table thead tr,
+    .booking-management-table thead tr { /* Added for my_bookings */
         position: absolute;
         top: -9999px;
         left: -9999px;
     }
-    .room-management-table tr {
+    .room-management-table tr,
+    .booking-management-table tr { /* Added for my_bookings */
         border: 1px solid var(--border-color);
         margin-bottom: 15px;
         border-radius: 10px;
         overflow: hidden;
     }
-    .room-management-table td {
+    .room-management-table td,
+    .booking-management-table td { /* Added for my_bookings */
         border: none;
         position: relative;
         padding-left: 50%;
         text-align: right;
         font-size: 1rem;
     }
-    .room-management-table td::before {
+    .room-management-table td::before,
+    .booking-management-table td::before { /* Added for my_bookings */
         content: attr(data-label);
         position: absolute;
         left: 15px;
@@ -1496,7 +1538,8 @@ footer {
         font-weight: 600;
         color: var(--primary-color);
     }
-    .room-management-table td:last-child {
+    .room-management-table td:last-child,
+    .booking-management-table td:last-child { /* Added for my_bookings */
         border-bottom: none;
     }
     .room-management-table .action-buttons {

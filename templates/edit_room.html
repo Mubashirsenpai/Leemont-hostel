@@ -30,7 +30,7 @@
                 </div>
                 <div class="form-group">
                     <label for="amenities">Amenities (comma-separated):</label>
-                    <textarea id="amenities" name="amenities" rows="3" required>{{ room.amenities | join(', ') }}</textarea>
+                    <textarea id="amenities" name="amenities" rows="3" required>{{ room.get_amenities() | join(', ') }}</textarea> {# Access amenities via helper method #}
                 </div>
 
                 {# NEW: File input for images #}
@@ -40,12 +40,12 @@
                     <div id="image_upload_status" class="upload-status"></div> {# For upload messages #}
                     <p class="note">Current Images: (Upload new images to replace existing ones)</p>
                     <div class="current-media-preview">
-                        {% for image in room.images %}
+                        {% for image in room.get_images() %} {# Access images via helper method #}
                             <img src="{{ image }}" alt="Current Room Image" class="current-image-thumbnail">
                         {% endfor %}
                     </div>
-                    {# Hidden input to store Cloudinary URLs (current + new) #}
-                    <input type="hidden" id="images_cloudinary_urls" name="images" value="{{ room.images | join('\n') }}"> 
+                    {# Hidden input to store Cloudinary URLs #}
+                    <input type="hidden" id="images_cloudinary_urls" name="images" value="{{ room.get_images() | join('\n') }}"> {# Access images via helper method #}
                 </div>
                 
                 {# NEW: File input for video #}
@@ -55,14 +55,14 @@
                     <div id="video_upload_status" class="upload-status"></div> {# For upload messages #}
                     <p class="note">Current Video: (Upload new video to replace existing one)</p>
                     <div class="current-media-preview">
-                        {% if room.video_url %}
-                            <video controls src="{{ room.video_url }}" class="current-video-thumbnail"></video>
+                        {% if room.get_videos() %} {# Access videos via helper method #}
+                            <video controls src="{{ room.get_videos()[0] }}" class="current-video-thumbnail"></video>
                         {% else %}
                             <p>No current video.</p>
                         {% endif %}
                     </div>
                     {# Hidden input to store Cloudinary URL (current + new) #}
-                    <input type="hidden" id="video_cloudinary_url" name="video_url" value="{{ room.video_url }}">
+                    <input type="hidden" id="video_cloudinary_url" name="video_url" value="{{ room.get_videos()[0] if room.get_videos() else '' }}"> {# Access videos via helper method #}
                 </div>
 
                 <button type="submit" class="btn primary" id="editRoomSubmitBtn">Update Room</button> {# ADDED ID #}

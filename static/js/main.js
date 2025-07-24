@@ -35,6 +35,17 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // NEW: Back to Top Button Click Listener
+    if (backToTop) {
+        backToTop.addEventListener('click', (e) => {
+            e.preventDefault(); // Prevent default anchor behavior
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth' // Smooth scroll to the top
+            });
+        });
+    }
+
     // Smooth scrolling for anchor links (if any are added later)
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
         anchor.addEventListener('click', function (e) {
@@ -163,24 +174,43 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // --- Form Submission Handling ---
-    // Prevent form submission if uploads are still pending (though buttons are disabled)
-    // This is a fallback and ensures the hidden fields are populated.
-
     const forms = ['addRoomForm', 'editRoomForm', 'editHostelDetailsForm'];
     forms.forEach(formId => {
         const form = document.getElementById(formId);
         if (form) {
             form.addEventListener('submit', function(event) {
-                // Check if any upload is still in progress (e.g., if button re-enabled too quickly)
                 const submitButton = event.submitter;
                 if (submitButton && submitButton.disabled) {
-                    event.preventDefault(); // Prevent submission
-                    alert('Please wait for all uploads to complete before submitting.'); // Use a custom modal in a real app
+                    event.preventDefault();
+                    // Use a custom modal or flash message instead of alert()
+                    // For now, we'll just log to console or use a simple text update
+                    console.warn('Please wait for all uploads to complete before submitting.');
+                    // You might add a message to a status div here
                 }
-                // The hidden inputs should already be populated by the 'change' event listeners
-                // so no further action is needed here for populating URLs.
             });
         }
     });
 
+    // Hero Image Slider Logic
+    const sliderTrack = document.querySelector('.hero-image-slider .slider-track');
+    if (sliderTrack) {
+        const images = Array.from(sliderTrack.children);
+        let currentImageIndex = 0;
+
+        function showNextImage() {
+            images.forEach((img, index) => {
+                img.classList.remove('active');
+                if (index === currentImageIndex) {
+                    img.classList.add('active');
+                }
+            });
+            currentImageIndex = (currentImageIndex + 1) % images.length;
+        }
+
+        // Initialize the first image as active
+        if (images.length > 0) {
+            images[0].classList.add('active');
+            setInterval(showNextImage, 5000); // Change image every 5 seconds
+        }
+    }
 });

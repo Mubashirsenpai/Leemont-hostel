@@ -3,9 +3,9 @@
 {% block title %}Admin Dashboard - {{ hostel.hostel_name }}{% endblock %}
 
 {% block content %}
-<section class="admin-dashboard py-8">
+<section class="admin-dashboard-section py-8">
     <div class="container">
-        <h1 class="text-center text-4xl font-bold mb-8">Admin Dashboard - {{ hostel.hostel_name }}</h1>
+        <h1 class="section-title text-center text-4xl font-bold">Admin Dashboard - {{ hostel.hostel_name }}</h1>
 
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
@@ -17,7 +17,6 @@
             {% endif %}
         {% endwith %}
 
-        {# MODIFIED: Removed mr-4 classes from buttons #}
         <div class="admin-actions mb-8 flex justify-between items-center">
             <h2 class="text-2xl font-semibold">Manage Rooms (Total Active: {{ total_available }})</h2>
             <div>
@@ -26,6 +25,13 @@
                 <a href="{{ url_for('logout') }}" class="btn danger">Logout</a>
             </div>
         </div>
+
+        {# DEBUGGING LINE: Check if rooms are received by the template #}
+        <p style="color: yellow; text-align: center; margin-bottom: 20px;">
+            DEBUG: Rooms received in template: {{ rooms|length }}
+            {% if rooms %} (First room name: {{ rooms[0].name }}) {% endif %}
+        </p>
+        {# END DEBUGGING LINE #}
 
         <div class="room-management-table bg-white shadow-md rounded-lg overflow-hidden">
             <table class="min-w-full leading-normal">
@@ -52,7 +58,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {% for room in hostel.rooms %}
+                    {% for room in rooms %}
                     <tr class="text-gray-700">
                         <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm" data-label="Room Name">
                             {{ room.name }}
@@ -60,15 +66,15 @@
                         <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm" data-label="Capacity">
                             {{ room.capacity }}
                         </td>
-                        <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm" data-label="Price">
+                        <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm" data-label="Price (GHC)">
                             {{ "%.2f"|format(room.price_per_academic_year) }}
                         </td>
                         <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm" data-label="Available">
                             {{ room.available_rooms }}
                         </td>
                         <td class="px-5 py-5 border-b border-gray-200 bg-white text-sm" data-label="Status">
-                            {% if room.get('is_deleted', false) %}
-                                <span class="text-red-500">Deleted (Hidden)</span>
+                            {% if room.is_deleted %}
+                                <span class="text-red-500">Deleted</span>
                             {% else %}
                                 <span class="text-green-500">Active</span>
                             {% endif %}
@@ -76,7 +82,7 @@
                         <td class="px-5 py-5 border-b border-gray-200 text-sm flex items-center"> 
                             <a href="{{ url_for('edit_room', room_id=room.id) }}" class="btn btn-info btn-small">Edit</a>
                             
-                            {% if not room.get('is_deleted', false) %}
+                            {% if not room.is_deleted %}
                                 <form action="{{ url_for('delete_room', room_id=room.id) }}" method="post" onsubmit="return confirm('Are you sure you want to delete {{ room.name }}? This will mark it as deleted and hide it from public view.');">
                                     <button type="submit" class="btn btn-danger btn-small">Delete</button>
                                 </form>

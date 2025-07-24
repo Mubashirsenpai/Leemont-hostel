@@ -9,9 +9,10 @@
 
         <div class="room-detail-content">
             <div class="room-detail-media">
-                {% if room.video_url %}
+                {% if room.get_videos() %} {# Access videos via helper method #}
                     <div class="video-container mb-4">
-                        <video controls src="{{ room.video_url }}" poster="{{ room.images[0] if room.images else '' }}">
+                        {# Assuming get_videos() returns a list, take the first one #}
+                        <video controls src="{{ room.get_videos()[0] }}" poster="{{ room.get_images()[0] if room.get_images() else '' }}">
                             Your browser does not support the video tag.
                         </video>
                     </div>
@@ -23,12 +24,12 @@
                 {% endif %}
 
                 <div class="image-grid-detail">
-                    {% for image in room.images %}
+                    {% for image in room.get_images() %} {# Access images via helper method #}
                         <div class="image-item">
                             <img src="{{ image }}" alt="{{ room.name }} Photo">
                         </div>
                     {% endfor %}
-                    {% if not room.images %}
+                    {% if not room.get_images() %}
                         <p>No images available for this room.</p>
                     {% endif %}
                 </div>
@@ -43,7 +44,7 @@
                 <div class="amenities-full-list">
                     <h4>Full Amenities:</h4>
                     <ul>
-                        {% for amenity in room.amenities %}
+                        {% for amenity in room.get_amenities() %} {# Access amenities via helper method #}
                             <li><i class="fas fa-check-circle"></i> {{ amenity }}</li>
                         {% endfor %}
                     </ul>
@@ -52,9 +53,9 @@
                 <div class="room-actions">
                     {# If user is not authenticated, redirect to login page before booking #}
                     {% if current_user.is_authenticated %}
-                        <a href="{{ url_for('book', room_id=room.id) }}" class="btn primary">Book This Room</a>
+                        <a href="{{ url_for('book_room', room_id=room.id) }}" class="btn primary">Book This Room</a> {# FIXED: Changed 'book' to 'book_room' #}
                     {% else %}
-                        <a href="{{ url_for('user_login', next=url_for('book', room_id=room.id)) }}" class="btn primary">Book This Room</a>
+                        <a href="{{ url_for('user_login', next=url_for('book_room', room_id=room.id)) }}" class="btn primary">Book This Room</a> {# FIXED: Changed 'book' to 'book_room' #}
                     {% endif %}
                     <a href="{{ url_for('rooms') }}" class="btn secondary">Back to Rooms</a>
                 </div>

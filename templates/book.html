@@ -10,7 +10,8 @@
         <div class="booking-form-container">
             <div class="room-summary">
                 <h3>Room Details</h3>
-                <img src="{{ room.images[0] if room.images else 'https://placehold.co/400x300/6c5ce7/ffffff?text=Room+Image' }}" alt="{{ room.name }}">
+                {# Access images via helper method #}
+                <img src="{{ room.get_images()[0] if room.get_images() else 'https://placehold.co/400x300/6c5ce7/ffffff?text=Room+Image' }}" alt="{{ room.name }}">
                 <p><strong>Name:</strong> {{ room.name }}</p>
                 <p><strong>Capacity:</strong> {{ room.capacity }} Person{% if room.capacity > 1 %}s{% endif %}</p>
                 <p><strong>Price:</strong> GHC {{ "%.2f"|format(room.price_per_academic_year) }} / Academic Year</p>
@@ -19,7 +20,7 @@
                 <div class="amenities-preview">
                     <h4>Amenities:</h4>
                     <ul>
-                        {% for amenity in room.amenities %}
+                        {% for amenity in room.get_amenities() %} {# Access amenities via helper method #}
                             <li><i class="fas fa-check-circle"></i> {{ amenity }}</li>
                         {% endfor %}
                     </ul>
@@ -28,14 +29,15 @@
 
             <div class="booking-form">
                 <h3>Your Booking Information</h3>
-                <form action="{{ url_for('book', room_id=room.id) }}" method="POST">
+                <form action="{{ url_for('book_room', room_id=room.id) }}" method="POST"> {# Changed endpoint to book_room #}
                     <div class="form-group">
-                        <label for="num_students">Number of Students:</label>
-                        <select id="num_students" name="num_students" required>
-                            {% for i in range(1, room.capacity + 1) %}
-                                <option value="{{ i }}">{{ i }}</option>
-                            {% endfor %}
-                        </select>
+                        <label for="check_in_date">Check-in Date:</label>
+                        <input type="date" id="check_in_date" name="check_in_date" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="check_out_date">Check-out Date:</label>
+                        <input type="date" id="check_out_date" name="check_out_date" required>
                     </div>
 
                     <div class="form-group">
@@ -45,13 +47,6 @@
                             <option value="credit_card">Credit Card</option>
                             <option value="mobile_money">Mobile Money (Ghana)</option>
                             <option value="bank_transfer">Bank Transfer</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="duration">Booking Duration:</label>
-                        <select id="duration" name="duration" required>
-                            <option value="academic_year">1 Academic Year</option>
                         </select>
                     </div>
 

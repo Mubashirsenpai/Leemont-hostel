@@ -10,8 +10,8 @@
             {% for room in rooms %}
             <div class="room-card">
                 <div class="room-image">
-                    {% if room.images %}
-                        <img src="{{ room.images[0] }}" alt="{{ room.name }}">
+                    {% if room.get_images() %} {# Access images via helper method #}
+                        <img src="{{ room.get_images()[0] }}" alt="{{ room.name }}">
                     {% else %}
                         <img src="https://placehold.co/800x600/6c5ce7/ffffff?text=Room+Image" alt="Placeholder Room Image">
                     {% endif %}
@@ -24,10 +24,10 @@
                     <div class="amenities-preview">
                         <h4>Key Amenities:</h4>
                         <ul>
-                            {% for amenity in room.amenities[:3] %} {# Show top 3 amenities #}
+                            {% for amenity in room.get_amenities()[:3] %} {# Access amenities via helper method, Show top 3 amenities #}
                                 <li><i class="fas fa-check-circle"></i> {{ amenity }}</li>
                             {% endfor %}
-                            {% if room.amenities|length > 3 %}
+                            {% if room.get_amenities()|length > 3 %}{# Check length of list from helper #}
                                 <li>...and more!</li>
                             {% endif %}
                         </ul>
@@ -35,9 +35,9 @@
                     <a href="{{ url_for('room_detail', room_id=room.id) }}" class="btn primary btn-small">View Details</a>
                     {# If user is not authenticated, redirect to login page before booking #}
                     {% if current_user.is_authenticated %}
-                        <a href="{{ url_for('book', room_id=room.id) }}" class="btn secondary btn-small">Book Now</a>
+                        <a href="{{ url_for('book_room', room_id=room.id) }}" class="btn secondary btn-small">Book Now</a> {# FIXED: Changed 'book' to 'book_room' #}
                     {% else %}
-                        <a href="{{ url_for('user_login', next=url_for('book', room_id=room.id)) }}" class="btn secondary btn-small">Book Now</a>
+                        <a href="{{ url_for('user_login', next=url_for('book_room', room_id=room.id)) }}" class="btn secondary btn-small">Book Now</a> {# FIXED: Changed 'book' to 'book_room' #}
                     {% endif %}
                 </div>
             </div>

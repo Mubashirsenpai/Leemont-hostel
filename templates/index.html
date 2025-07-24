@@ -31,12 +31,11 @@
                     <li><a href="{{ url_for('home') }}" class="{% if request.endpoint == 'home' %}active{% endif %}">Home</a></li>
                     <li><a href="{{ url_for('gallery') }}" class="{% if request.endpoint == 'gallery' %}active{% endif %}">Gallery</a></li>
                     <li><a href="{{ url_for('rooms') }}" class="{% if request.endpoint == 'rooms' %}active{% endif %}">Rooms</a></li>
-                    {# The 'book' endpoint requires a room_id, so linking to rooms is more appropriate for a general "Book Now" #}
-                    {# Removed "Book Now" link as per request, replaced with auth buttons #}
-
+                    
                     {# Authentication Links #}
                     {% if current_user.is_authenticated %}
-                        {# If any user is logged in, show Logout #}
+                        {# If any user is logged in, show My Bookings and Logout #}
+                        <li><a href="{{ url_for('my_bookings') }}" class="{% if request.endpoint == 'my_bookings' %}active{% endif %}">My Bookings</a></li>
                         <li><a href="{{ url_for('logout') }}" class="btn primary btn-small">Logout</a></li>
                     {% else %}
                         {# If no user is logged in, show Signup and Login #}
@@ -55,16 +54,16 @@
     </header>
 
     <main>
+        {# Flash messages positioned globally via CSS #}
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
-                <div class="container flash-messages">
+                <div class="flash-messages mb-6">
                     {% for category, message in messages %}
                         <div class="alert alert-{{ category }}">{{ message }}</div>
                     {% endfor %}
                 </div>
             {% endif %}
         {% endwith %}
-
         {% block content %}{% endblock %}
     </main>
 
@@ -72,7 +71,7 @@
         <div class="container">
             <div class="footer-content">
                 <div class="footer-col">
-                    <h3>Leemont Hostel</h3> {# Updated to Leemont Hostel #}
+                    <h3>{{ hostel.hostel_name }}</h3> {# Updated to use hostel object #}
                     <p>Your ideal student accommodation. Comfort, convenience, and community.</p>
                 </div>
                 
@@ -89,15 +88,15 @@
                 <div class="footer-col">
                     <h3>Contact</h3>
                     <ul>
-                        <li><i class="fas fa-map-marker-alt"></i> Location: [Hostel Address]</li>
-                        <li><i class="fas fa-phone"></i> Phone: +233 XXX XXX XXXX</li>
+                        <li><i class="fas fa-map-marker-alt"></i> Location: UDS-Nyankpala Campus</li>
+                        <li><i class="fas fa-phone"></i> Phone: +233 20 597 5367</li>
                         <li><i class="fas fa-envelope"></i> Email: info@leemonthostel.com</li> 
                     </ul>
                 </div>
             </div>
             
             <div class="footer-bottom">
-                <p>&copy; <span id="year"></span> Leemont Hostel. All Rights Reserved.</p> {# Updated to Leemont Hostel #}
+                <p>&copy; <span id="year"></span> {{ hostel.hostel_name }}. All Rights Reserved.</p> {# Updated to use hostel object #}
             </div>
         </div>
     </footer>

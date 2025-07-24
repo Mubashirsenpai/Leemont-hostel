@@ -25,25 +25,27 @@
         <div class="slider-track">
             {# Loop through general images, repeat if less than 8, or use placeholders #}
             {% set images_to_display = [] %}
-            {% if hostel.general_images %}
+            {% if hostel.get_general_images() %} {# Access images via helper method #}
                 {% for i in range(8) %} {# Aim for 8 images in the slider #}
-                    {% set img_index = i % hostel.general_images|length %}
-                    {% if hostel.general_images[img_index] %}
-                        {% set _ = images_to_display.append(hostel.general_images[img_index]) %}
-                    {% else %}
-                        {# Fallback placeholder if not enough images #}
-                        {% set _ = images_to_display.append('https://placehold.co/800x600/007bff/ffffff?text=Hostel+Image+' ~ (i+1)) %}
-                    {% endif %}
+                    {% set image_index = i % hostel.get_general_images()|length %}
+                    {% set images_to_display = images_to_display + [hostel.get_general_images()[image_index]] %}
                 {% endfor %}
             {% else %}
-                {# If no general images at all, use 8 distinct placeholders #}
-                {% for i in range(8) %}
-                    {% set _ = images_to_display.append('https://placehold.co/800x600/007bff/ffffff?text=Hostel+Image+' ~ (i+1)) %}
-                {% endfor %}
+                {# Fallback placeholders if no general images #}
+                {% set images_to_display = [
+                    'https://placehold.co/800x600/6c5ce7/ffffff?text=Hostel+Image+1',
+                    'https://placehold.co/800x600/a29bfe/ffffff?text=Hostel+Image+2',
+                    'https://placehold.co/800x600/00b894/ffffff?text=Hostel+Image+3',
+                    'https://placehold.co/800x600/d63031/ffffff?text=Hostel+Image+4',
+                    'https://placehold.co/800x600/fdcb6e/ffffff?text=Hostel+Image+5',
+                    'https://placehold.co/800x600/0984e3/ffffff?text=Hostel+Image+6',
+                    'https://placehold.co/800x600/636e72/ffffff?text=Hostel+Image+7',
+                    'https://placehold.co/800x600/1a1933/ffffff?text=Hostel+Image+8'
+                ] %}
             {% endif %}
 
-            {% for image_url in images_to_display %}
-                <img src="{{ image_url }}" alt="Leemont Hostel Image" class="slide-image" data-slide-index="{{ loop.index0 }}">
+            {% for image in images_to_display %}
+                <img src="{{ image }}" alt="Hostel Image" class="slide-image">
             {% endfor %}
         </div>
     </div>
@@ -51,31 +53,30 @@
 
 <section id="about" class="about">
     <div class="container">
-        <h2 class="section-title">About <span>{{ hostel.hostel_name }}</span></h2>
+        <h2 class="section-title">About <span>Us</span></h2>
         <div class="about-content">
             <div class="about-text">
-                <h3>Your Home Away From Home</h3>
-                <p>{{ hostel.hostel_name }} offers a vibrant and secure environment for students. We prioritize your comfort, safety, and academic success. Our facilities are designed to provide a balanced living and learning experience.</p>
-                <p>We are conveniently located near major campuses and provide easy access to essential services. Join our community and make your university life memorable!</p>
-                
+                <h3>Welcome to {{ hostel.hostel_name }}</h3> {# Updated to use hostel object #}
+                <p>Leemont Hostel is dedicated to providing a safe, comfortable, and conducive living environment for students. Located conveniently near campus, we offer modern facilities and a vibrant community atmosphere.</p>
+                <p>Our mission is to support students in their academic journey by offering a 'home away from home' where they can thrive, study, and build lasting friendships.</p>
                 <div class="amenities-list">
                     <h4>Hostel Amenities:</h4>
                     <ul>
-                        {% for amenity in hostel.hostel_amenities %}
+                        {% for amenity in hostel.get_hostel_amenities() %} {# Access amenities via helper method #}
                             <li><i class="fas fa-check-circle"></i> {{ amenity }}</li>
                         {% endfor %}
                     </ul>
                 </div>
             </div>
             <div class="about-video">
-                {% if hostel.general_video_url %}
-                    <video controls src="{{ hostel.general_video_url }}" poster="{{ hostel.general_images[0] if hostel.general_images else '' }}">
+                {% if hostel.general_video_url %} {# Access video URL directly #}
+                    <video controls src="{{ hostel.general_video_url }}" poster="{{ hostel.get_general_images()[0] if hostel.get_general_images() else '' }}">
                         Your browser does not support the video tag.
                     </video>
                 {% else %}
                     <div class="video-placeholder">
                         <i class="fas fa-video"></i>
-                        <p>No general video available.</p>
+                        <p>No general hostel video available.</p>
                     </div>
                 {% endif %}
             </div>
@@ -90,8 +91,8 @@
             {% for room in featured_rooms %}
             <div class="room-card">
                 <div class="room-image">
-                    {% if room.images %}
-                        <img src="{{ room.images[0] }}" alt="{{ room.name }}">
+                    {% if room.get_images() %} {# Access images via helper method #}
+                        <img src="{{ room.get_images()[0] }}" alt="{{ room.name }}">
                     {% else %}
                         <img src="https://placehold.co/800x600/6c5ce7/ffffff?text=Room+Image" alt="Placeholder Room Image">
                     {% endif %}
