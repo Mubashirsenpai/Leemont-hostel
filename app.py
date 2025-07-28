@@ -31,6 +31,15 @@ PAYSTACK_SECRET_KEY = os.environ.get('PAYSTACK_SECRET_KEY', 'sk_test_YOUR_PAYSTA
 PAYSTACK_VERIFY_URL = "https://api.paystack.co/transaction/verify/"
 PAYSTACK_INITIALIZE_URL = "https://api.paystack.co/transaction/initialize"
 
+# --- DEBUGGING PAYSTACK KEYS (TEMPORARY) ---
+# These print statements will show up in your Render deployment/runtime logs.
+# For security, avoid printing the full secret key in production logs.
+print(f"DEBUG: PAYSTACK_PUBLIC_KEY as seen by app: {PAYSTACK_PUBLIC_KEY}")
+print(f"DEBUG: PAYSTACK_SECRET_KEY is set: {bool(PAYSTACK_SECRET_KEY)}")
+if PAYSTACK_SECRET_KEY:
+    print(f"DEBUG: PAYSTACK_SECRET_KEY prefix: {PAYSTACK_SECRET_KEY[:10]}...")
+# --- END DEBUGGING ---
+
 # --- SQLAlchemy Models ---
 
 class User(db.Model, UserMixin):
@@ -230,7 +239,6 @@ def load_hostel_details_for_request():
 @app.route('/home')
 def home():
     """Renders the home page with general hostel info and some room highlights."""
-    # flash('This is a test flash message!', 'info') # Removed temporary flash message
     active_rooms = Room.query.filter_by(is_deleted=False).order_by(Room.id.asc()).limit(3).all()
     return render_template('home.html', hostel=g.hostel, featured_rooms=active_rooms)
 
