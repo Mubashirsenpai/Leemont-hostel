@@ -29,7 +29,7 @@
 
             <div class="booking-form">
                 <h3>Your Booking Information</h3>
-                <form action="{{ url_for('book_room', room_id=room.id) }}" method="POST"> {# Changed endpoint to book_room #}
+                <form id="bookingForm"> {# Changed action and method will be handled by JS #}
                     <div class="form-group">
                         <label for="check_in_date">Check-in Date:</label>
                         <input type="date" id="check_in_date" name="check_in_date" required>
@@ -50,11 +50,97 @@
                         </select>
                     </div>
 
-                    <button type="submit" class="btn primary">Proceed to Payment (Simulated)</button>
+                    <button type="submit" class="btn primary" id="payButton">Proceed to Payment</button>
+                    <p class="note">Note: This is a simulated payment process for demonstration purposes. Real payment integration would require secure third-party payment gateways.</p>
                 </form>
-                <p class="note">Note: This is a simulated payment process for demonstration purposes. Real payment integration would require secure third-party payment gateways.</p>
             </div>
         </div>
     </div>
 </section>
 {% endblock %}
+
+{% block scripts %}
+    {{ super() }} {# Keep existing scripts from index.html #}
+    <script src="https://js.paystack.co/v1/inline.js"></script> {# Paystack SDK #}
+    <!-- <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const bookingForm = document.getElementById('bookingForm');
+            const payButton = document.getElementById('payButton');
+            const publicKey = "{{ paystack_public_key }}"; // Passed from Flask backend
+
+            if (bookingForm && payButton && publicKey && publicKey !== 'pk_test_YOUR_PAYSTACK_PUBLIC_KEY') {
+                bookingForm.addEventListener('submit', async function(event) {
+                    event.preventDefault(); // Prevent default form submission
+
+                    payButton.disabled = true;
+                    payButton.textContent = 'Processing...';
+
+                    const formData = new FormData(bookingForm);
+                    const room_id = {{ room.id }}; // Get room ID from Jinja context
+
+                    try {
+                        // Step 1: Initialize transaction on your Flask backend
+                        const response = await fetch(`/book/${room_id}`, {
+                            method: 'POST',
+                            body: formData // Send form data to Flask
+                        });
+
+                        const data = await response.json();
+
+                        if (data.status === 'success') {
+                            // Step 2: Open Paystack Checkout
+                            const handler = PaystackPop.setup({
+                                key: publicKey,
+                                email: "{{ current_user.email }}", // User's email from Flask-Login
+                                amount: {{ (room.price_per_academic_year * 100) | int }}, {# MODIFIED: Added |int filter #}
+                                ref: data.reference, // Unique reference from your backend
+                                metadata: {
+                                    custom_fields: [
+                                        {
+                                            display_name: "Booking ID",
+                                            variable_name: "booking_id",
+                                            value: data.metadata ? data.metadata.booking_id : ''
+                                        },
+                                        {
+                                            display_name: "Room ID",
+                                            variable_name: "room_id",
+                                            value: room_id
+                                        }
+                                    ]
+                                },
+                                callback: function(response){
+                                    // This is called after payment is successful or closed by user
+                                    // The response.reference is the transaction reference
+                                    window.location.href = `/paystack/callback?reference=${response.reference}`;
+                                },
+                                onClose: function(){
+                                    // User closed the popup without completing payment
+                                    alert('Payment window closed. Please try again.');
+                                    payButton.disabled = false;
+                                    payButton.textContent = 'Proceed to Payment';
+                                }
+                            });
+                            handler.openIframe(); // Open the Paystack popup
+
+                        } else {
+                            alert(`Error: ${data.message || 'Payment initialization failed on server.'}`);
+                            payButton.disabled = false;
+                            payButton.textContent = 'Proceed to Payment';
+                        }
+                    } catch (error) {
+                        console.error('Error during payment initialization:', error);
+                        alert('An error occurred. Please check your console and try again.');
+                        payButton.disabled = false;
+                        payButton.textContent = 'Proceed to Payment';
+                    }
+                });
+            } else {
+                console.error("Paystack Public Key is missing or invalid. Check your Render environment variables.");
+                if (payButton) {
+                    payButton.disabled = true;
+                    payButton.textContent = 'Payment Not Configured';
+                }
+            }
+        });
+    </script>
+{% endblock %} -->
